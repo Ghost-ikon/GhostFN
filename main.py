@@ -80,7 +80,7 @@ class EasyBot(commands.Bot):
         self.kairos = '	cid_017_57be3d12193366eacf9d41c198a97dc66c214ffdfa47776539ac0431ad57b656'
         device_auth_details = get_device_auth_details().get(email, {})
         super().__init__(
-            command_prefix='!',
+            command_prefix='/',
             auth=fortnitepy.AdvancedAuth(
                 email=email,
                 password=password,
