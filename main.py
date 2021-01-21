@@ -8,9 +8,9 @@ try:
     import random as py_random
     import subprocess
     import os
-    import asyncio
     import uvloop
     import sys
+    import time
 
     from fortnitepy.ext import commands
 
@@ -74,13 +74,28 @@ async def get_authorization_code():
                 code = response
                 return code
 
+async def event_device_auth_generate(self, details, email):
+    print(details)
+    with open("auths.json", "r") as f:
+        text = f.read()
+
+        auths = json.loads(text)
+
+    auths[email] = details
+
+    with open("auths.json", "w+") as f:
+        text = json.dumps(auths)
+        f.write(text)
+
+    print('Generated DeviceAuth')
+
 class EasyBot(commands.Bot):
     def __init__(self, email : str, password : str, **kwargs):
         self.status = 'Made with GhostFN 👻'
-        self.kairos = '	cid_017_57be3d12193366eacf9d41c198a97dc66c214ffdfa47776539ac0431ad57b656'
+        self.kairos = 'CID_017_Athena_Commando_M'
         device_auth_details = get_device_auth_details().get(email, {})
         super().__init__(
-            command_prefix='/',
+            command_prefix='!',
             auth=fortnitepy.AdvancedAuth(
                 email=email,
                 password=password,
@@ -117,41 +132,8 @@ class EasyBot(commands.Bot):
         self.sanic_app = sanic_app
         self.server = server
 
-        self.welcome_message = ""
-
-
-    async def set_and_update_member_prop(self, schema_key: str, new_value: Any):
-        prop = {schema_key: self.party.me.meta.set_prop(schema_key, new_value)}
-
-        await self.party.me.patch(updated=prop)
-
-    async def set_and_update_party_prop(self, schema_key: str, new_value: Any):
-        prop = {schema_key: self.party.me.meta.set_prop(schema_key, new_value)}
-
-        await self.party.patch(updated=prop)
-
-
-    async def event_ready(self):
-        global name
-
-        name = self.user.display_name
-
-        print(crayons.green(f'[>] Logged in as: [{self.user.display_name}].'))
-
-        coro = self.sanic_app.create_server(
-            host='0.0.0.0',
-            port=8000,
-           return_asyncio_server=True,
-            access_log=False
-        )
-        self.server = await coro
-
-        for pending in self.incoming_pending_friends:
-            epic_friend = await pending.accept()
-            if isinstance(epic_friend, fortnitepy.Friend):
-                print(f"[+] Accepted friend request from: [{epic_friend.display_name}]")
-            else:
-                print(f"[!] Declined friend request from: [{pending.display_name}]")
+        self.welcome_message = "Welcome user, \n to get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!"
+      #--------------------------  
 
     async def event_party_invite(self, invite: fortnitepy.ReceivedPartyInvitation):
         await invite.accept()
@@ -201,19 +183,17 @@ class EasyBot(commands.Bot):
 
             if self.user.display_name != member.display_name:  # Welcomes the member who just joined.
 
-                await self.party.send(f"Welcome, [{member.display_name}], \n to get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n TikTok: Ghost_Leaks\n Instagram: ghost__leaks\nMade with GhostFN!")
+                await self.party.send(f"Welcome, [{member.display_name}], \n to get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
             
                 print(f"[+] [{member.display_name}] Joined the Lobby.")
 
-    async def event_friend_message(self, message: fortnitepy.FriendMessage):
-        print(f'{message.author.display_name}: {message.content}')
-        await message.reply(self.welcome_message.replace('{DISPLAY_NAME}', message.author.display_name))
+
 
     async def event_command_error(self, ctx: fortnitepy.ext.commands.Context,
                                   error: fortnitepy.ext.commands.CommandError):
         if isinstance(error, fortnitepy.ext.commands.errors.CommandNotFound):
             if isinstance(ctx.message, fortnitepy.FriendMessage):
-                await ctx.send('Invalid Command!')
+                await ctx.send('Invalid Command!\n You can try reversing the uppercase letters.')
             else:
                 pass
         elif isinstance(error, fortnitepy.ext.commands.errors.MissingRequiredArgument):
@@ -222,6 +202,401 @@ class EasyBot(commands.Bot):
             pass
         else:
             raise error
+
+   #-----------------------------------------
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Equips all new non encrypted skins.",
+        help="Equips all new non encrypted skins.\n"
+             "Example: !new"
+    )
+    async def new(self, ctx: fortnitepy.ext.commands.Context) -> None:
+        new_skins = await self.fortnite_api.cosmetics.get_new_cosmetics()
+
+        for new_skin in [new_cid for new_cid in new_skins if new_cid.split('/')[-1].lower().startswith('cid_')]:
+            await self.party.me.set_outfit(
+                asset=new_skin.split('/')[-1].split('.uasset')[0]
+            )
+
+            await ctx.send(f"Skin set to {new_skin.split('/')[-1].split('.uasset')[0]}!")
+            print(f"Skin set to: {new_skin.split('/')[-1].split('.uasset')[0]}!")
+
+
+        await ctx.send(f'Finished equipping all new unencrypted skins.')
+        print(f'Finished equipping all new unencrypted skins.')
+
+        for new_emote in [new_eid for new_eid in new_skins if new_eid.split('/')[-1].lower().startswith('eid_')]:
+            await self.party.me.set_emote(
+                asset=new_emote.split('/')[-1].split('.uasset')[0]
+            )
+
+            await ctx.send(f"Emote set to {new_emote.split('/')[-1].split('.uasset')[0]}!")
+            print(f"Emote set to: {new_emote.split('/')[-1].split('.uasset')[0]}!")
+
+
+        await ctx.send(f'Finished equipping all new unencrypted skins.')
+        print(f'Finished equipping all new unencrypted skins.')   
+     
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
+        help="Sets the outfit of the client to a random Henchman skin.\n"
+             "Example: defaults"
+    )
+    async def defaults(self, ctx: fortnitepy.ext.commands.Context) -> None:
+      await ctx.send(f"old defaults..")
+      await self.party.me.set_outfit(asset="cid_001_athena_commando_f_default")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_002_athena_commando_f_default")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_003_athena_commando_f_default")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_004_athena_commando_f_default")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_005_athena_commando_m_default")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_006_athena_commando_m_default")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_007_athena_commando_m_default")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_008_athena_commando_m_default")
+      await self.party.me.set_emote(asset="EID_Yeet")
+      await asyncio.sleep(2.30)
+      await ctx.send(f"Chapter 2!!")
+      await self.party.me.set_outfit(asset="cid_556_athena_commando_f_rebirthdefaulta")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_557_athena_commando_f_rebirthdefaultb")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_558_athena_commando_f_rebirthdefaultc")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_559_athena_commando_f_rebirthdefaultd")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_560_athena_commando_m_rebirthdefaulta")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_561_athena_commando_m_rebirthdefaultb")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_562_athena_commando_m_rebirthdefaultc")
+      await asyncio.sleep(1.30)
+      await self.party.me.set_outfit(asset="cid_563_athena_commando_m_rebirthdefaultd")
+      await asyncio.sleep(1.30)
+
+      await ctx.send(
+        f"There was all defaults! "
+    ) 
+
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
+        help="Sets the outfit of the client to a random Henchman skin.\n"
+             "Example: exclusive"
+    )
+    async def exclusive(self, ctx: fortnitepy.ext.commands.Context) -> None:
+      await ctx.send(f"Exclusive skins..")
+      await self.party.me.set_outfit(asset="CID_114_Athena_Commando_F_TacticalWoodland")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_HipHop01")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_174_Athena_Commando_F_CarbideWhite")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_LookAtThis")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_175_Athena_Commando_M_Celestial")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_HandsUp")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_183_Athena_Commando_M_ModernMilitaryRed")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_TwistDaytona")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_342_Athena_Commando_M_StreetRacerMetallic")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_JanuaryBop")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_313_Athena_Commando_M_KpopFashion")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Kpopdance03")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_386_Athena_Commando_M_StreetOpsStealth")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Bollywood")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_434_Athena_Commando_F_StealthHonor")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_MathDance")
+      await asyncio.sleep(7)
+      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+      await self.party.me.set_outfit(asset="CID_371_Athena_Commando_M_SpeedyMidnight")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_LasagnaDance")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_479_Athena_Commando_F_Davinci")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Davinci")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_516_Athena_Commando_M_BlackWidowRogue")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_TorchSnuffer")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_757_Athena_Commando_F_WildCat")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Saxophone")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_441_Athena_Commando_F_CyberScavengerBlue")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Sprinkler")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_113_Athena_Commando_M_BlueAce")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_PopLock")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_052_Athena_Commando_F_PSBlue")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_HotStuff")
+      await asyncio.sleep(7)
+      await self.party.me.set_outfit(asset="CID_360_Athena_Commando_M_TechOpsBlue")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Dab")
+      await asyncio.sleep(7)
+
+      await ctx.send(
+        f"There was all exclusive!"
+    ) 
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Equips all skins currently in the item shop.",
+        help="Equips all skins currently in the item shop.\n"
+             "Example: !shop"
+    )
+    async def shop(self, ctx: fortnitepy.ext.commands.Context) -> None:
+        store = await self.fetch_item_shop()
+
+        await ctx.send(f"Equipping all skins in today's item shop.")
+        print(f"Equipping all skins in today's item shop.")
+
+        for item in store.special_featured_items + \
+                store.special_daily_items + \
+                store.special_featured_items + \
+                store.special_daily_items:
+            for grant in item.grants:
+                if grant['type'] == 'AthenaCharacter':
+                    await self.party.me.set_outfit(
+                        asset=grant['asset']
+                    )
+
+                    await ctx.send(f"Skin set to {item.display_names[0]}!")
+                    print(f"Skin set to: {item.display_names[0]}!")
+
+
+        await ctx.send(f'Finished equipping all skins in the item shop.')
+        print(f'Finished equipping all skins in the item shop.')
+
+    @commands.dm_only()
+    @commands.command(
+        description="[Party] Sends the defined user a friend request.",
+        help="Sends the defined user a friend request.\n"
+             "Example: !friend GhostLeaks"
+    )
+    async def friend(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: str) -> None:
+        user = await self.fetch_user(epic_username)
+
+        if user is not None:
+            await self.add_friend(user.id)
+            await ctx.send(f'Sent/accepted friend request to/from {user.display_name}.')
+            print(f'Sent/accepted friend request to/from {user.display_name}.')
+        else:
+            await ctx.send(f'Cant find a user with the name: {epic_username}.')
+            print(
+                crayons.red(f"[ERROR] Failed to find a user with the name {epic_username}."))
+    
+    @commands.dm_only()
+    @commands.command(
+        name="invite",
+        description="[Party] Invites the defined friend to the party. If friend is left blank, "
+                    "the message author will be used.",
+        help="Invites the defined friend to the party.\n"
+             "Example: !invite Terbau"
+    )
+    async def _invite(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: Optional[str] = None) -> None:
+        if epic_username is None:
+            epic_friend = self.get_friend(ctx.author.id)
+        else:
+            user = await self.fetch_user(epic_username)
+
+            if user is not None:
+                epic_friend = self.get_friend(user.id)
+            else:
+                epic_friend = None
+                await ctx.send(f'Cant find a user with the name: {epic_username}.')
+                print(crayons.red(f"[ERROR] "
+                                  f"Failed to find user with the name: {epic_username}."))
+
+        if isinstance(epic_friend, fortnitepy.Friend):
+            try:
+                await epic_friend.invite()
+                await ctx.send(f'Invited {epic_friend.display_name} to the party.')
+                print(f"[ERROR] Invited {epic_friend.display_name} to the party.")
+            except fortnitepy.errors.PartyError:
+                await ctx.send('Failed to invite friend as they are either already in the party or it is full.')
+                print(crayons.red(f"[ERROR] "
+                                  "Failed to invite to party as friend is already either in party or it is full."))
+        else:
+            await ctx.send('Cannot invite to party as the friend is not found.')
+            print(crayons.red(f"[ERROR] "
+                              "Failed to invite to party as the friend is not found."))
+                      
+    @commands.dm_only()
+    @commands.command(
+        description="[Party] Joins the party of the defined friend. If friend is left blank, "
+                    "the message author will be used.",
+        help="Joins the party of the defined friend.\n"
+             "Example: !join Terbau"
+    )
+    async def join(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: Optional[str] = None) -> None:
+        if epic_username is None:
+            epic_friend = self.get_friend(ctx.author.id)
+        else:
+            user = await self.fetch_user(epic_username)
+
+            if user is not None:
+                epic_friend = self.get_friend(user.id)
+            else:
+                epic_friend = None
+                await ctx.send(f'Failed to find user with the name: {epic_username}.')
+
+        if isinstance(epic_friend, fortnitepy.Friend):
+            try:
+                await epic_friend.join_party()
+                await ctx.send(f'Joined the party of {epic_friend.display_name}.')
+            except fortnitepy.errors.Forbidden:
+                await ctx.send('Failed to join party since it is private.')
+            except fortnitepy.errors.PartyError:
+                await ctx.send('Party not found, are you sure party is pubblic?')
+        else:
+            await ctx.send('Cannot join party as the friend is not found.')        
+    
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Clears/stops the emote currently playing.",
+        help="Clears/stops the emote currently playing.\n"
+             "Example: !stop"
+    )
+    async def stop(self, ctx: fortnitepy.ext.commands.Context) -> None:
+        await self.party.me.clear_emote()
+        await ctx.send('Ok I stop doing everything!')
+
+    @commands.dm_only()
+    @commands.command(
+        description="[Party] Sets the parties current privacy.",
+        help="Sets the parties current privacy.\n"
+             "Example: !privacy private"
+    )
+    async def privacy(self, ctx: fortnitepy.ext.commands.Context, privacy_type: str) -> None:
+        try:
+            if privacy_type.lower() == 'public':
+                await self.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
+            elif privacy_type.lower() == 'private':
+                await self.party.set_privacy(fortnitepy.PartyPrivacy.PRIVATE)
+            elif privacy_type.lower() == 'friends':
+                await self.party.set_privacy(fortnitepy.PartyPrivacy.FRIENDS)
+            elif privacy_type.lower() == 'friends_allow_friends_of_friends':
+                await self.party.set_privacy(fortnitepy.PartyPrivacy.FRIENDS_ALLOW_FRIENDS_OF_FRIENDS)
+            elif privacy_type.lower() == 'private_allow_friends_of_friends':
+                await self.party.set_privacy(fortnitepy.PartyPrivacy.PRIVATE_ALLOW_FRIENDS_OF_FRIENDS)
+
+            await ctx.send(f'Party privacy set to {self.party.privacy}.')
+            print(f'Party privacy set to {self.party.privacy}.')
+
+        except fortnitepy.errors.Forbidden:
+            await ctx.send(f"Failed to set party privacy to {privacy_type}, as I'm not party leader.")
+            print(crayons.red(f"[ERROR] "
+                              "Failed to set party privacy as I don't have the required permissions."))
+
+    @commands.dm_only()
+    @commands.command(
+        description="[Party] Kicks the inputted user.",
+        help="Kicks the inputted user.\n"
+             "Example: !kick GhostLeaks"
+    )
+    async def kick(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: str) -> None:
+        user = await self.fetch_user(epic_username)
+        member = self.party.members.get(user.id)
+
+        if member is None:
+            await ctx.send("Failed to find that user, are you sure they're in the party?")
+        else:
+            try:
+                await member.kick()
+                await ctx.send(f"Kicked user: {member.display_name}.")
+                print(f"Kicked user: {member.display_name}")
+            except fortnitepy.errors.Forbidden:
+                await ctx.send(f"I can't kick {member.display_name}, as I'm not party leader.")
+                print(crayons.red(f"[ERROR] "
+                                  "Failed to kick member as I don't have the required permissions."))
+
+    @commands.dm_only()
+    @commands.command(
+        description="[Party] Sets the level of the self.",
+        help="Sets the level of the self.\n"
+             "Example: !level 999"
+    )
+    async def level(self, ctx: fortnitepy.ext.commands.Context, banner_level: int) -> None:
+        await self.party.me.set_banner(
+            season_level=banner_level
+        )
+
+        await ctx.send(f'Set level to {banner_level}. \nTo get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+    
+    @commands.dm_only()
+    @commands.command(
+        description="[Party] Leaves the current party.",
+        help="Leaves the current party.\n"
+             "Example: !leave"
+    )
+    async def leave(self, ctx: fortnitepy.ext.commands.Context) -> None:
+        await self.party.me.set_emote('EID_Snap')
+        await asyncio.sleep(2.0)
+        await self.party.me.leave()
+        await ctx.send('Bye!')
+
+        print(f'Left the party as I was requested.')
+
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Sets the outfit of the client to Pink Ghoul Trooper.",
+        help="Sets the outfit of the client to Pink Ghoul Trooper.\n"
+             "Example: !pinkghoul"
+    )
+    async def pinkghoul(self, ctx: fortnitepy.ext.commands.Context) -> None:
+        skin_variants = self.party.me.create_variants(
+            material=3
+        )
+
+        await self.party.me.set_outfit(
+            asset='CID_029_Athena_Commando_F_Halloween',
+            variants=skin_variants
+        )
+
+        await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+        print(f"Skin set to Pink Ghoul Trooper.") 
+
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Sets the outfit of the client to Purple Skull Trooper.",
+        help="Sets the outfit of the client to Purple Skull Trooper.\n"
+             "Example: !purpleskull"
+    )
+    async def purpleskull(self, ctx: fortnitepy.ext.commands.Context) -> None:
+        skin_variants = self.party.me.create_variants(
+            clothing_color=1
+        )
+
+        await self.party.me.set_outfit(
+            asset='CID_030_Athena_Commando_M_Halloween',
+            variants=skin_variants
+        )
+
+        await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+        print(f"Skin set to Purpleskull.")
 
     @commands.dm_only()
     @commands.command()
@@ -280,7 +655,6 @@ class EasyBot(commands.Bot):
             print(f"[!] Failed to find an emote with the name: [{content}]")
 
 
-
 if os.getenv("EMAIL") and os.getenv("PASSWORD"):
     bot = EasyBot(
         email=os.getenv("EMAIL"),
@@ -291,3 +665,4 @@ if os.getenv("EMAIL") and os.getenv("PASSWORD"):
 else:
     sys.stderr.write("[!] Enter an Email and Password in the \".env\" file.\n")
     sys.exit()
+
