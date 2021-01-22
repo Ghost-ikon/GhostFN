@@ -8,9 +8,9 @@ try:
     import random as py_random
     import subprocess
     import os
+    import asyncio
     import uvloop
     import sys
-    import time
 
     from fortnitepy.ext import commands
 
@@ -24,7 +24,7 @@ except ModuleNotFoundError:
     print(f'[!] Error found, run: install.bat')
 
 
-sanic_app = sanic.Sanic(__name__) 
+sanic_app = sanic.Sanic(__name__) #mxnty is best
 server = None
 
 name = ""
@@ -33,7 +33,7 @@ filename = 'device.json'
 
 @sanic_app.route('/', methods=['GET'])
 async def accept_ping(request: sanic.request.Request):
-    return sanic.response.json({"bot": "online"})
+    return sanic.response.json({"status": "online"})
 
 
 @sanic_app.route('/name', methods=['GET'])
@@ -52,6 +52,7 @@ def store_device_auth_details(email, details):
 
     with open(filename, 'w') as fp:
         json.dump(existing, fp)
+
 
 async def get_authorization_code():
     while True:
@@ -135,6 +136,21 @@ class EasyBot(commands.Bot):
         self.welcome_message = "Welcome user, \n to get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!"
       #--------------------------  
 
+    async def event_ready(self):
+        global name
+
+        name = self.user.display_name
+
+        print(crayons.green(f'[>] Logged in as: [{self.user.display_name}].'))
+
+        coro = self.sanic_app.create_server(
+            host='0.0.0.0',
+            port=8000,
+           return_asyncio_server=True,
+            access_log=False
+        )
+        self.server = await coro
+
     async def event_party_invite(self, invite: fortnitepy.ReceivedPartyInvitation):
         await invite.decline()
         print(f'[>] declined: {invite.sender.display_name}.')
@@ -186,6 +202,9 @@ class EasyBot(commands.Bot):
                 await self.party.send(f"Welcome, [{member.display_name}], \n to get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
             
                 print(f"[+] [{member.display_name}] Joined the Lobby.")
+
+
+
 
 
 
