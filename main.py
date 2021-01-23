@@ -1,1099 +1,1765 @@
 try:
-    from typing import Any, Union, Optional
     import asyncio
-    import datetime
-    import json
-    import functools
-    import os
     import sys
-    import random as py_random
-    from fortnitepy.ext import commands
-    import aioconsole
-    import crayons
+    import os
+    import time
+    import datetime
+
+    import json
+    from functools import partial
+
+    import random as rand
+
+    from colorama import Fore, Back, Style, init
+
+    init(autoreset=True)
+
     import fortnitepy
-    import FortniteAPIAsync
-    import sanic
-    
-except ModuleNotFoundError:
-    print(f'[!] Error found, run: install.bat')
+    from fortnitepy.ext import commands
+    import BenBotAsync
+    import aiohttp
+    import requests
+
+except ModuleNotFoundError as e:
+    print(e)
+    print(
+        Fore.RED
+        + " • "
+        + Fore.RESET
+        + 'Failed to import 1 or more modules. Run "INSTALL PACKAGES.bat'
+    )
+    exit()
+
+os.system("cls||clear")
+
+intro = (
+    Fore.LIGHTCYAN_EX
+    + """ 
+    GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF
+                                                                    
+ """
+)
+
+print(intro)
 
 
-sanic_app = sanic.Sanic(__name__) #mxnty is best
-server = None
-
-name = ""
-
-filename = 'device.json'
-
-@sanic_app.route('/', methods=['GET'])
-async def accept_ping(request: sanic.request.Request):
-    return sanic.response.json({"status": "online"})
+def lenPartyMembers():
+    members = client.party.members
+    return len(members)
 
 
-@sanic_app.route('/name', methods=['GET'])
-async def accept_ping(request: sanic.request.Request):
-    return sanic.response.json({"display_name": name})
+def warn(*args, **kwargs):
+    pass
+
+
+import warnings
+
+warnings.warn = warn
+
+
+def lenFriends():
+    friends = client.friends
+    return len(friends)
+
+
+def getNewSkins():
+    r = requests.get("https://benbotfn.tk/api/v1/files/added")
+
+    response = r.json()
+
+    cids = []
+
+    for cid in [
+        item for item in response if item.split("/")[-1].upper().startswith("CID_")
+    ]:
+        cids.append(cid.split("/")[-1].split(".")[0])
+
+    return cids
+
+
+def getNewEmotes():
+    r = requests.get("https://benbotfn.tk/api/v1/files/added")
+
+    response = r.json()
+
+    eids = []
+
+    for cid in [
+        item for item in response if item.split("/")[-1].upper().startswith("EID_")
+    ]:
+        eids.append(cid.split("/")[-1].split(".")[0])
+
+    return eids
+
 
 def get_device_auth_details():
-    if os.path.isfile(filename):
-        with open(filename, 'r') as fp:
+    if os.path.isfile("auths.json"):
+        with open("auths.json", "r") as fp:
             return json.load(fp)
+    else:
+        with open("auths.json", "w+") as fp:
+            json.dump({}, fp)
     return {}
+
 
 def store_device_auth_details(email, details):
     existing = get_device_auth_details()
     existing[email] = details
 
-    with open(filename, 'w') as fp:
+    with open("auths.json", "w") as fp:
         json.dump(existing, fp)
 
 
-async def get_authorization_code():
-    while True:
-        response = await aioconsole.ainput("http://bit.ly/38URYTD "+ " \nGhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF \nPut the code and press invio: ")
-        if "redirectUrl" in response:
-            response = json.loads(response)
-            if "?code" not in response["redirectUrl"]:
-                print("[!] ERROR: Invalid Response.")
-                continue
-            code = response["redirectUrl"].split("?code=")[1]
-            return code
-        else:
-            if "https://accounts.epicgames.com/fnauth" in response:
-                if "?code" not in response:
-                    print("[!] ERROR: Invalid Response.")
-                    continue
-                code = response.split("?code=")[1]
-                return code
-            else:
-                code = response
-                return code
-
-async def event_device_auth_generate(self, details, email):
-    print(details)
-    with open("auths.json", "r") as f:
-        text = f.read()
-
-        auths = json.loads(text)
-
-    auths[email] = details
-
-    with open("auths.json", "w+") as f:
-        text = json.dumps(auths)
-        f.write(text)
-
-    print('Generated DeviceAuth')
-
-class EasyBot(commands.Bot):
-    def __init__(self, email : str, password : str, **kwargs):
-        self.status = '🔥 Made with GhostFN 🔥'
-        self.kairos = 'CID_017_Athena_Commando_M'
-        device_auth_details = get_device_auth_details().get(email, {})
-        super().__init__(
-            command_prefix='!',
-            auth=fortnitepy.AdvancedAuth(
-                email=email,
-                password=password,
-                prompt_authorization_code=False,
-                delete_existing_device_auths=True,
-                authorization_code=get_authorization_code,
-                **device_auth_details
-            ),
-
-            status=self.status,
-            platform=fortnitepy.Platform(os.getenv("PLATFORM")),
-
-            avatar=fortnitepy.Avatar(
-                asset=self.kairos,
-                background_colors=fortnitepy.KairosBackgroundColorPreset.PINK.value
-            ),
-
-
-            **kwargs
+with open("config.json") as f:
+    try:
+        data = json.load(f)
+    except json.decoder.JSONDecodeError as e:
+        print(
+            Fore.RED
+            + " [ERROR] "
+            + Fore.RESET
+            + "There was an error in one of the bot's files! (config.json). GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF"
         )
+        print(Fore.LIGHTRED_EX + f"\n {e}")
+        exit(1)
 
-        self.fortnite_api = FortniteAPIAsync.APIClient()
-        self.loop = asyncio.get_event_loop()
 
-        self.default_skin = os.getenv("SKIN")
-        self.default_backpack = os.getenv("BACKPACK")
-        self.default_pickaxe = os.getenv("PICKAXE")
-        self.banner = os.getenv("BANNER")
-        self.banner_colour = os.getenv("BANNERCOLOR")
-        self.default_level = os.getenv("LEVEL")
-        self.default_bp_tier = os.getenv("TIER")
-        self.default_emote = os.getenv("EMOTE")
-
-        self.sanic_app = sanic_app
-        self.server = server
-
-        self.welcome_message = "Welcome user, \n to get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!"
-      #--------------------------  
-
-    async def event_ready(self):
-        global name
-
-        name = self.user.display_name
-
-        print(crayons.green(f'[>] Logged in as: [{self.user.display_name}].'))
-
-        coro = self.sanic_app.create_server(
-            host='0.0.0.0',
-            port=8000,
-           return_asyncio_server=True,
-            access_log=False
+with open("info.json") as f:
+    try:
+        info = json.load(f)
+    except json.decoder.JSONDecodeError as e:
+        print(
+            Fore.RED
+            + " [ERROR] "
+            + Fore.RESET
+            + "There was an error in one of the bot's files! (info.json) GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF"
         )
-        self.server = await coro
+        print(Fore.LIGHTRED_EX + f"\n {e}")
+        exit(1)
 
-    async def event_party_invite(self, invite: fortnitepy.ReceivedPartyInvitation):
-        await invite.decline()
-        print(f'[>] declined: {invite.sender.display_name}.')
 
-    async def event_friend_request(self, request: fortnitepy.IncomingPendingFriend):
-        print(f"[>] Received friend request from: [{request.display_name}].")
+def is_admin():
+    async def predicate(ctx):
+        return ctx.author.id in info["FullAccess"]
 
-        await request.accept()
-        print(f"[+] New Friend: [{request.display_name}].")
+    return commands.check(predicate)
 
-    async def event_party_member_join(self, member: fortnitepy.PartyMember):
-        await self.party.send(self.welcome_message.replace('{DISPLAY_NAME}', member.display_name))
 
-        if self.default_party_member_config.cls is not fortnitepy.party.JustChattingClientPartyMember:
-            await self.party.me.edit(
-                functools.partial(
-                    self.party.me.set_outfit,
-                    self.default_skin
-                ),
-                functools.partial(
-                    self.party.me.set_backpack,
-                    self.default_backpack
-                ),
-                functools.partial(
-                    self.party.me.set_pickaxe,
-                    self.default_pickaxe
-                ),
-                functools.partial(
-                    self.party.me.set_banner,
-                    icon=self.banner,
-                    color=self.banner_colour,
-                    season_level=self.default_level
-                ),
-                functools.partial(
-                    self.party.me.set_battlepass_info,
-                    has_purchased=True,
-                    level=self.default_bp_tier
-                )
+device_auth_details = get_device_auth_details().get(data["email"], {})
+
+prefix = data["prefix"]
+
+client = commands.Bot(
+    command_prefix=prefix,
+    case_insensitive=True,
+    auth=fortnitepy.AdvancedAuth(
+        email=data["email"],
+        password=data["password"],
+        prompt_authorization_code=True,
+        delete_existing_device_auths=True,
+        **device_auth_details,
+    ),
+    platform=fortnitepy.Platform(data["platform"]),
+)
+
+
+
+
+
+@client.event
+async def event_device_auth_generate(details, email):
+    store_device_auth_details(email, details)
+
+
+@client.event
+async def event_ready():
+    
+    os.system("cls||clear")
+    print(intro)
+    print(
+        Fore.LIGHTCYAN_EX
+        + " • "
+        + Fore.RESET
+        + "Client ready as "
+        + Fore.LIGHTCYAN_EX
+        + f"{client.user.display_name}"
+    )
+
+    member = client.party.me
+
+    await member.edit_and_keep(
+        partial(fortnitepy.ClientPartyMember.set_outfit, asset=data["cid"]),
+        partial(fortnitepy.ClientPartyMember.set_backpack, asset=data["bid"]),
+        partial(fortnitepy.ClientPartyMember.set_pickaxe, asset=data["pid"]),
+        partial(
+            fortnitepy.ClientPartyMember.set_banner,
+            icon=data["banner"],
+            color=data["banner_color"],
+            season_level=data["level"],
+        ),
+        partial(
+            fortnitepy.ClientPartyMember.set_battlepass_info,
+            has_purchased=True,
+            level=data["bp_tier"],
+        ),
+    )
+
+    client.set_avatar(
+        fortnitepy.Avatar(
+            asset=data["avatar"], background_colors=["#ff3535", "#dc1919", "#fa7676"]
+        )
+    )
+    client.message='test'
+    
+
+
+@client.event
+async def event_party_invite(invite):
+    if data["joinoninvite"].lower() == "true":
+        try:
+            await invite.accept()
+            print(
+                Fore.LIGHTCYAN_EX
+                + " • "
+                + Fore.RESET
+                + "Accepted party invite from"
+                + Fore.LIGHTCYAN_EX
+                + f"{invite.sender.display_name}"
             )
-
-        
-
-        if self.default_party_member_config.cls is not fortnitepy.party.JustChattingClientPartyMember:
-            await self.party.me.clear_emote()
-            await self.party.me.set_emote(asset=self.default_emote)
-
-            if self.user.display_name != member.display_name:  # Welcomes the member who just joined.
-
-                await self.party.send(f"Welcome, [{member.display_name}], \n to get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
-            
-                print(f"[+] [{member.display_name}] Joined the Lobby.")
-
-
-
-
-
-
-    async def event_command_error(self, ctx: fortnitepy.ext.commands.Context,
-                                  error: fortnitepy.ext.commands.CommandError):
-        if isinstance(error, fortnitepy.ext.commands.errors.CommandNotFound):
-            if isinstance(ctx.message, fortnitepy.FriendMessage):
-                await ctx.send('Invalid Command!\n You can try reversing the uppercase letters.')
-            else:
-                pass
-        elif isinstance(error, fortnitepy.ext.commands.errors.MissingRequiredArgument):
-            await ctx.send('Error, I need permissions :)')
-        elif isinstance(error, fortnitepy.ext.commands.errors.PrivateMessageOnly):
+        except Exception:
             pass
-        else:
-            raise error
-
-   #-----------------------------------------
-    @commands.dm_only()
-    @commands.command(
-        aliases=['sitin'],
-        description="[Party] Sets the readiness of the client to unready.",
-        help="Sets the readiness of the client to unready.\n"
-             "Example: !unready"
-    )
-    async def unready(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        await self.party.me.set_ready(fortnitepy.ReadyState.NOT_READY)
-        await ctx.send('Unready, finaly!')
-
-    @commands.dm_only()
-    @commands.command(
-        aliases=['unhide'],
-        description="[Party] Promotes the defined user to party leader. If friend is left blank, "
-                    "the message author will be used.",
-        help="Promotes the defined user to party leader. If friend is left blank, the message author will be used.\n"
-             "Example: !promote mxnty"
-    )
-    async def promote(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: Optional[str] = None) -> None:
-        if epic_username is None:
-            user = await self.fetch_user(ctx.author.display_name)
-            member = self.party.members.get(user.id)
-        else:
-            user = await self.fetch_user(epic_username)
-            member = self.party.members.get(user.id)
-
-        if member is None:
-            await ctx.send("Failed to find that user, are you sure they're in the party?")
-        else:
-            try:
-                await member.promote()
-                await ctx.send(f"Promoted user: {member.display_name}.")
-                print(f"Promoted user: {member.display_name}")
-            except fortnitepy.errors.Forbidden:
-                await ctx.send(f"Failed topromote {member.display_name}, as I'm not party leader.")
-                print(crayons.red(f"[ERROR] "
-                                  "Failed to kick member as I don't have the required permissions."))
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Clears the currently set backpack.",
-        help="Clears the currently set backpack.\n"
-             "Example: !nobackpack"
-    )
-    async def noback(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        await self.party.me.clear_backpack()
-        await ctx.send('Backpack set to none.')
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to Golden Peely "
-                    "(shortcut for !enlightened CID_701_Athena_Commando_M_BananaAgent 2 350).",
-        help="Sets the outfit of the client to Golden Peely.\n"
-             "Example: !goldenpeely"
-    )
-    async def goldenmidas(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        await self.party.me.set_outfit(
-            asset='CID_694_Athena_Commando_M_CatBurglar',
-            variants=self.party.me.create_variants(progressive=4),
-            enlightenment=(2, 350)
-        )
-
-        await ctx.send(f'Skin set to Golden Peely.')  
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Sends the defined user a friend request.",
-        help="Sends the defined user a friend request.\n"
-             "Example: !friend Ninja"
-    )
-    async def add(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: str) -> None:
-        user = await self.fetch_user(epic_username)
-
-        if user is not None:
-            await self.add_friend(user.id)
-            await ctx.send(f'Sent/accepted friend request to/from {user.display_name}.')
-            print(f'Sent/accepted friend request to/from {user.display_name}.')
-        else:
-            await ctx.send(f'Cant to find user with the name: {epic_username}.')
+    elif data["joinoninvite"].lower() == "false":
+        if invite.sender.id in info["FullAccess"]:
+            await invite.accept()
             print(
-                crayons.red(f"[ERROR] Failed to find a user with the name {epic_username}."))
+                Fore.LIGHTCYAN_EX
+                + " • "
+                + Fore.RESET
+                + "Accepted party invite from "
+                + Fore.LIGHTCYAN_EX
+                + f"{invite.sender.display_name}"
+            )
+        else:
+            print(
+                Fore.LIGHTCYAN_EX
+                + " • "
+                + Fore.RESET
+                + "Never accepted party invite from "
+                + Fore.LIGHTCYAN_EX
+                + f"{invite.sender.display_name}"
+            )
 
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Sets the lobbies selected playlist using playlist name.",
-        help="Sets the lobbies selected playlist using playlist name.\n"
-             "Example: !playlist Food Fight"
-    )
-    async def playlist(self, ctx: fortnitepy.ext.commands.Context, *, playlist_name: str) -> None:
+
+@client.event
+async def event_friend_request(request):
+    if data["friendaccept"].lower() == "true":
         try:
-            scuffedapi_playlist_id = await self.fortnite_api.get_playlist(playlist_name)
-
-            if scuffedapi_playlist_id is not None:
-                await self.party.set_playlist(playlist=scuffedapi_playlist_id)
-                await ctx.send(f'Playlist set to {scuffedapi_playlist_id}.')
-                print(f'Playlist set to {scuffedapi_playlist_id}.')
-
-            else:
-                await ctx.send(f'Cant find a playlist with the name: {playlist_name}.')
-                print(crayons.red(f"[ERROR] "
-                                  f"Failed to find a playlist with the name: {playlist_name}."))
-
-        except fortnitepy.errors.Forbidden:
-            await ctx.send(f"Failed to set playlist to {playlist_name}, as I'm not party leader.")
-            print(crayons.red(f"[ERROR] "
-                              "Failed to set playlist as I need leader."))     
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to Golden Peely "
-                    "(shortcut for !enlightened CID_701_Athena_Commando_M_BananaAgent 2 350).",
-        help="Sets the outfit of the client to Golden Peely.\n"
-             "Example: !goldenpeely"
-    )
-    async def goldenpeely(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        await self.party.me.set_outfit(
-            asset='CID_701_Athena_Commando_M_BananaAgent',
-            variants=self.party.me.create_variants(progressive=4),
-            enlightenment=(2, 350)
-        )
-
-        await ctx.send(f'Skin set to Golden Peely.')
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the backpack of the client to Purple Ghost Portal.",
-        help="Sets the backpack of the client to Purple Ghost Portal.\n"
-             "Example: !purpleportal"
-    )
-    async def purpleportal(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        skin_variants = self.party.me.create_variants(
-            item='AthenaBackpack',
-            particle_config='Particle',
-            particle=1
-        )
-
-        await self.party.me.set_backpack(
-            asset='VTID_053_Ghost_Portal__RedFlames',
-            variants=skin_variants
-        )
-
-        await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
-        print(f"Backpack set to Purple Ghost Portal.")
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Sets the readiness of the client to ready.",
-        help="Sets the readiness of the client to ready.\n"
-             "Example: !ready"
-    )
-    async def ready(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        await self.party.me.set_ready(fortnitepy.ReadyState.READY)
-        await ctx.send('Ready to do anything!')   
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Sets the readiness of the client to unready.",
-        help="Sets the readiness of the client to unready.\n"
-             "Example: !unready"
-    )
-    async def unready(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        await self.party.me.set_unready(fortnitepy.ReadyState.UNREADY)
-        await ctx.send('Unready finaly!')     
-
-    @commands.dm_only()
-    @commands.command(
-        aliases=['unhide'],
-        description="[Party] Promotes the defined user to party leader. If friend is left blank, "
-                    "the message author will be used.",
-        help="Promotes the defined user to party leader. If friend is left blank, the message author will be used.\n"
-             "Example: !promote Terbau"
-    )
-    async def promote(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: Optional[str] = None) -> None:
-        if epic_username is None:
-            user = await self.fetch_user(ctx.author.display_name)
-            member = self.party.members.get(user.id)
-        else:
-            user = await self.fetch_user(epic_username)
-            member = self.party.members.get(user.id)
-
-        if member is None:
-            await ctx.send("Failed to find that user, are you sure they're in the party?")
-        else:
+            await request.accept()
+            print(
+                f" • Accepted friend request from {request.display_name}"
+                + Fore.LIGHTBLACK_EX
+                + f" ({lenFriends()})"
+            )
+        except Exception:
+            pass
+    elif data["friendaccept"].lower() == "false":
+        if request.id in info["FullAccess"]:
             try:
-                await member.promote()
-                await ctx.send(f"Promoted user: {member.display_name}.")
-                print(f"Promoted user: {member.display_name}")
-            except fortnitepy.errors.Forbidden:
-                await ctx.send(f"Failed to promote {member.display_name}, as I'm not party leader.")
-                print(crayons.red(f"[ERROR] "
-                                  "Failed to kick member as I don't have the required permissions."))
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets pickaxe using PICKAXE_ID or display name & does 'Point it Out'. If no pickaxe is "
-                    "specified, only the emote will be played.",
-        help="Sets pickaxe using PICKAXE_ID or display name & does 'Point it Out'. If no pickaxe is "
-             "specified, only the emote will be played.\n"
-             "Example: !point Pickaxe_ID_029_Assassin"
-    )
-    async def point(self, ctx: fortnitepy.ext.commands.Context, *, content: Optional[str] = None) -> None:
-        if content is None:
-            await self.party.me.set_emote(asset='EID_IceKing')
-            await ctx.send(f'Point it Out played.')
-        elif 'pickaxe_id' in content.lower():
-            await self.party.me.set_pickaxe(asset=content)
-            await self.party.me.set_emote(asset='EID_IceKing')
-            await ctx.send(f'Pickaxe set to {content} & Point it Out played.')
-        else:
-            try:
-                cosmetic = await self.fortnite_api.cosmetics.get_cosmetic(
-                    lang="en",
-                    searchLang="en",
-                    matchMethod="contains",
-                    name=content,
-                    backendType="AthenaPickaxe"
+                await request.accept()
+                print(
+                    Fore.LIGHTCYAN_EX
+                    + " • "
+                    + Fore.RESET
+                    + "Accepted friend request from "
+                    + Fore.LIGHTCYAN_EX
+                    + f"{request.display_name}"
+                    + Fore.LIGHTBLACK_EX
+                    + f" ({lenFriends()})"
                 )
-
-                await self.party.me.set_pickaxe(asset=cosmetic.id)
-                await self.party.me.clear_emote()
-                await self.party.me.set_emote(asset='EID_IceKing')
-                await ctx.send(f'Pickaxe set to {content} & Point it Out played.')
-            except FortniteAPIAsync.exceptions.NotFound:
-                await ctx.send(f"Cant find a pickaxe with the name: {content}")
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the backpack of the client using BID.",
-        help="Sets the backpack of the client using BID.\n"
-             "Example: !bid BID_023_Pinkbear"
-    )
-    async def b(self, ctx: fortnitepy.ext.commands.Context, backpack_id: str) -> None:
-        await self.party.me.set_backpack(
-            asset=backpack_id
-        )
-
-        await ctx.send(f'Backbling set to {backpack_id}!')
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the emote of the client using EID.",
-        help="Sets the emote of the client using EID.\n"
-             "Example: !eid EID_Floss"
-    )
-    async def e(self, ctx: fortnitepy.ext.commands.Context, emote_id: str) -> None:
-        await self.party.me.clear_emote()
-        await self.party.me.set_emote(
-            asset=emote_id
-        )
-
-        await ctx.send(f'Emote set to {emote_id}!')
-
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Creates the variants list by the variants you set.",
-        help="Creates the variants list by the variants you set.\n"
-             "Example: !variants CID_030_Athena_Commando_M_Halloween clothing_color 1"
-    )
-    async def variants(self, ctx: fortnitepy.ext.commands.Context, cosmetic_id: str, variant_type: str,
-                       variant_int: str) -> None:
-        if 'c' in cosmetic_id.lower() and 'jersey_color' not in variant_type.lower():
-            skin_variants = self.party.me.create_variants(
-                **{variant_type: int(variant_int) if variant_int.isdigit() else variant_int}
-            )
-
-            await self.party.me.set_outfit(
-                asset=cosmetic_id,
-                variants=skin_variants
-            )
-
-        elif 'c' in cosmetic_id.lower() and 'jersey_color' in variant_type.lower():
-            cosmetic_variants = self.party.me.create_variants(
-                pattern=0,
-                numeric=69,
-                **{variant_type: int(variant_int) if variant_int.isdigit() else variant_int}
-            )
-
-            await self.party.me.set_outfit(
-                asset=cosmetic_id,
-                variants=cosmetic_variants
-            )
-
-        elif 'b' in cosmetic_id.lower():
-            cosmetic_variants = self.party.me.create_variants(
-                item='AthenaBackpack',
-                **{variant_type: int(variant_int) if variant_int.isdigit() else variant_int}
-            )
-
-            await self.party.me.set_backpack(
-                asset=cosmetic_id,
-                variants=cosmetic_variants
-            )
-        elif 'p' in cosmetic_id.lower():
-            cosmetic_variants = self.party.me.create_variants(
-                item='AthenaPickaxe',
-                **{variant_type: int(variant_int) if variant_int.isdigit() else variant_int}
-            )
-
-            await self.party.me.set_pickaxe(
-                asset=cosmetic_id,
-                variants=cosmetic_variants
-            )
-
-        await ctx.send(f'Set variants of {cosmetic_id} to {variant_type} {variant_int}.')
-        print(f'Set variants of {cosmetic_id} to {variant_type} {variant_int}.')
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client using CID.",
-        help="Sets the outfit of the client using CID.\n"
-             "Example: !cid CID_047_Athena_Commando_F_HolidayReindeer"
-    )
-    async def c(self, ctx: fortnitepy.ext.commands.Context, character_id: str) -> None:
-        await self.party.me.set_outfit(
-            asset=character_id,
-            variants=self.party.me.create_variants(profile_banner='ProfileBanner')
-        )
-
-        await ctx.send(f'Skin set to {character_id}.')
-        print(f'Skin set to {character_id}.')
-
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to Checkered Renegade.",
-        help="Sets the outfit of the client to Checkered Renegade.\n"
-             "Example: !renegade2"
-    )
-    async def renegade2(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        skin_variants = self.party.me.create_variants(
-            material=2
-        )
-
-        await self.party.me.set_outfit(
-            asset='CID_028_Athena_Commando_F',
-            variants=skin_variants
-        )
-
-        await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN')
-        print(f'Skin set to Checkered Renegade.')
-
-    
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Equips all new non encrypted skins.",
-        help="Equips all new non encrypted skins.\n"
-             "Example: !new"
-    )
-    async def new(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        new_skins = await self.fortnite_api.cosmetics.get_new_cosmetics()
-
-        for new_skin in [new_cid for new_cid in new_skins if new_cid.split('/')[-1].lower().startswith('cid_')]:
-            await self.party.me.set_outfit(
-                asset=new_skin.split('/')[-1].split('.uasset')[0]
-            )
-
-            await ctx.send(f"Skin set to {new_skin.split('/')[-1].split('.uasset')[0]}!")
-            print(f"Skin set to: {new_skin.split('/')[-1].split('.uasset')[0]}!")
-
-
-        await ctx.send(f'Finished equipping all new unencrypted skins.')
-        print(f'Finished equipping all new unencrypted skins.')
-
-        for new_emote in [new_eid for new_eid in new_skins if new_eid.split('/')[-1].lower().startswith('eid_')]:
-            await self.party.me.set_emote(
-                asset=new_emote.split('/')[-1].split('.uasset')[0]
-            )
-
-            await ctx.send(f"Emote set to {new_emote.split('/')[-1].split('.uasset')[0]}!")
-            print(f"Emote set to: {new_emote.split('/')[-1].split('.uasset')[0]}!")
-
-
-        await ctx.send(f'Finished equipping all new unencrypted skins.')
-        print(f'Finished equipping all new unencrypted skins.')   
-     
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
-        help="Sets the outfit of the client to a random Henchman skin.\n"
-             "Example: defaults"
-    )
-    async def defaults(self, ctx: fortnitepy.ext.commands.Context) -> None:
-      await ctx.send(f"old defaults..")
-      await self.party.me.set_outfit(asset="cid_001_athena_commando_f_default")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_002_athena_commando_f_default")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_003_athena_commando_f_default")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_004_athena_commando_f_default")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_005_athena_commando_m_default")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_006_athena_commando_m_default")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_007_athena_commando_m_default")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_008_athena_commando_m_default")
-      await self.party.me.set_emote(asset="EID_Yeet")
-      await asyncio.sleep(2.30)
-      await ctx.send(f"Chapter 2!!")
-      await self.party.me.set_outfit(asset="cid_556_athena_commando_f_rebirthdefaulta")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_557_athena_commando_f_rebirthdefaultb")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_558_athena_commando_f_rebirthdefaultc")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_559_athena_commando_f_rebirthdefaultd")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_560_athena_commando_m_rebirthdefaulta")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_561_athena_commando_m_rebirthdefaultb")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_562_athena_commando_m_rebirthdefaultc")
-      await asyncio.sleep(1.30)
-      await self.party.me.set_outfit(asset="cid_563_athena_commando_m_rebirthdefaultd")
-      await asyncio.sleep(1.30)
-
-      await ctx.send(
-        f"There was all defaults! "
-    ) 
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
-        help="Sets the outfit of the client to a random Henchman skin.\n"
-             "Example: exclusive"
-    )
-    async def exclusive(self, ctx: fortnitepy.ext.commands.Context) -> None:
-      await ctx.send(f"Exclusive skins..")
-      await self.party.me.set_outfit(asset="CID_114_Athena_Commando_F_TacticalWoodland")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_HipHop01")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_174_Athena_Commando_F_CarbideWhite")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_LookAtThis")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_175_Athena_Commando_M_Celestial")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_HandsUp")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_183_Athena_Commando_M_ModernMilitaryRed")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_TwistDaytona")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_342_Athena_Commando_M_StreetRacerMetallic")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_JanuaryBop")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_313_Athena_Commando_M_KpopFashion")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Kpopdance03")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_386_Athena_Commando_M_StreetOpsStealth")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Bollywood")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_434_Athena_Commando_F_StealthHonor")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_MathDance")
-      await asyncio.sleep(7)
-      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
-      await self.party.me.set_outfit(asset="CID_371_Athena_Commando_M_SpeedyMidnight")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_LasagnaDance")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_479_Athena_Commando_F_Davinci")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Davinci")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_516_Athena_Commando_M_BlackWidowRogue")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_TorchSnuffer")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_757_Athena_Commando_F_WildCat")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Saxophone")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_441_Athena_Commando_F_CyberScavengerBlue")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Sprinkler")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_113_Athena_Commando_M_BlueAce")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_PopLock")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_052_Athena_Commando_F_PSBlue")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_HotStuff")
-      await asyncio.sleep(7)
-      await self.party.me.set_outfit(asset="CID_360_Athena_Commando_M_TechOpsBlue")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Dab")
-      await asyncio.sleep(7)
-
-      await ctx.send(
-        f"There was all exclusive!"
-    ) 
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
-        help="Sets the outfit of the client to a random Henchman skin.\n"
-             "Example: exclusive"
-    )
-    async def s2(self, ctx: fortnitepy.ext.commands.Context) -> None:
-      await ctx.send(f"S2 pass..")
-      await self.party.me.set_outfit(asset="CID_032_Athena_Commando_M_Medieval")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Wave")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_033_Athena_Commando_F_Medieval")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_DanceMoves")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_039_Athena_Commando_F_Disco")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_RideThePonyTwo")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_035_Athena_Commando_M_Medieval")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Floss")
-      await asyncio.sleep(5)
-      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
-      await self.party.me.set_emote(asset="EID_Dab")
-      await ctx.send(
-        f"S2 reel"
-      )
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
-        help="Sets the outfit of the client to a random Henchman skin.\n"
-             "Example: exclusive"
-    )
-    async def s3(self, ctx: fortnitepy.ext.commands.Context) -> None:
-      await ctx.send(f"S3 pass..")
-      await self.party.me.set_outfit(asset="CID_080_Athena_Commando_M_Space")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_081_Athena_Commando_F_Space")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_BestMates")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_082_Athena_Commando_M_Scavenger")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_088_Athena_Commando_M_SpaceBlack")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_083_Athena_Commando_F_Tactical")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Robot")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_084_Athena_Commando_M_Assassin")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_TakeTheL")
-      await asyncio.sleep(5)
-      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
-      await self.party.me.set_emote(asset="EID_Dab")
-      await ctx.send(
-        f"S3 reel"
-      )  
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
-        help="Sets the outfit of the client to a random Henchman skin.\n"
-             "Example: exclusive"
-    )
-    async def s1(self, ctx: fortnitepy.ext.commands.Context) -> None:
-      await ctx.send(f"S1 pass..")
-      await self.party.me.set_outfit(asset="CID_017_Athena_Commando_M")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Dab")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_022_Athena_Commando_F")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_Fresh")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_029_Athena_Commando_F_Halloween")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_FingerGuns")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_030_Athena_Commando_M_Halloween")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="")
-      await asyncio.sleep(5)
-      await self.party.me.set_outfit(asset="CID_028_Athena_Commando_F")
-      await asyncio.sleep(2)
-      await self.party.me.set_emote(asset="EID_ElectroShuffle")
-      await asyncio.sleep(5)
-      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
-      await self.party.me.set_emote(asset="EID_Dab")
-      await ctx.send(
-        f"S1 reel"
-      )  
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Sends the defined user a friend request.",
-        help="Sends the defined user a friend request.\n"
-             "Example: !friend GhostLeaks"
-    )
-    async def friend(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: str) -> None:
-        user = await self.fetch_user(epic_username)
-
-        if user is not None:
-            await self.add_friend(user.id)
-            await ctx.send(f'Sent/accepted friend request to/from {user.display_name}.')
-            print(f'Sent/accepted friend request to/from {user.display_name}.')
+            except Exception:
+                pass
         else:
-            await ctx.send(f'Cant find a user with the name: {epic_username}.')
+            print(f" • Never accepted friend request from {request.display_name}")
+
+banned = []
+
+@client.event
+async def event_party_message(message: fortnitepy.PartyMessage):
+    if message.content == "" and client.party.me.leader:
+        await message.author.kick()
+        banned.append(message.author.id)
+@client.event
+async def event_party_message(message: fortnitepy.PartyMessage):
+    if message.content == "Hi" and client.party.me.leader:
+        await ctx.send('Hello friend how are you!')
+@client.event
+async def event_party_member_confirm(confirmation: fortnitepy.PartyJoinConfirmation):
+    if confirmation.user.id not in banned:
+        await confirmation.accept()
+
+banned = []
+
+@client.event
+async def event_party_message(message: fortnitepy.PartyMessage):
+    if message.content == "Heyy :bruh)                                                                                                                                For your own bot:                                                                                                                                : Youtube: LupusLeaks                                                                                                                                - TikTok: LupusLeaks                                                                                                                                -Instagram: LupusLeaks                                                                                                                                -Discord: https://ezfn.net/discord"and client.party.me.leader:
+        await message.author.kick()
+        banned.append(message.author.id)
+
+@client.event
+async def event_party_member_confirm(confirmation: fortnitepy.PartyJoinConfirmation):
+    if confirmation.user.id not in banned:
+        await confirmation.accept()
+
+@client.event
+async def event_party_member_join(member: fortnitepy.PartyMember) -> None:
+    
+    await client.party.send(
+        f" Welcome {member.display_name}, \n Made with GhostFN \n Join https://discord.gg/8AHPRyEzmF to get your own bot!"
+    )
+    await client.party.me.set_emote(asset="eid_wave")
+    await asyncio.sleep(1.25)
+    await client.party.me.clear_emote()
+    await client.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
+
+@client.event
+async def event_party_member_confirm(confirmation):
+    if confirmation.user.id in client.blocked_users:
+        await confirmation.reject()
+    else:
+        await confirmation.confirm()
+
+
+@client.event
+async def event_party_member_leave(member):
+    
+    await client.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
+    if client.user.display_name != member.display_name:
+        try:
             print(
-                crayons.red(f"[ERROR] Failed to find a user with the name {epic_username}."))
-    
-    @commands.dm_only()
-    @commands.command(
-        name="invite",
-        description="[Party] Invites the defined friend to the party. If friend is left blank, "
-                    "the message author will be used.",
-        help="Invites the defined friend to the party.\n"
-             "Example: !invite Terbau"
+                Fore.LIGHTYELLOW_EX
+                + f" • {member.display_name}"
+                + Fore.RESET
+                + " has left the lobby."
+                + Fore.LIGHTBLACK_EX
+                + f" ({lenPartyMembers()})"
+            )
+        except fortnitepy.HTTPException:
+            pass
+
+
+@client.event
+async def event_party_message(message):
+    if message.author.id in info["FullAccess"]:
+        name = Fore.LIGHTCYAN_EX + f"{message.author.display_name}"
+    else:
+        name = Fore.RESET + f"{message.author.display_name}"
+    print(Fore.GREEN + " • [Party] " + f"{name}" + Fore.RESET + f": {message.content}")
+
+
+@client.event
+async def event_friend_message(message):
+    if message.author.id in info["FullAccess"]:
+        name = Fore.LIGHTMAGENTA_EX + f"{message.author.display_name}"
+    else:
+        name = Fore.RESET + f"{message.author.display_name}"
+    print(
+        Fore.LIGHTMAGENTA_EX
+        + " • [Whisper] "
+        + f"{name}"
+        + Fore.RESET
+        + f": {message.content}"
     )
-    async def _invite(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: Optional[str] = None) -> None:
-        if epic_username is None:
-            epic_friend = self.get_friend(ctx.author.id)
-        else:
-            user = await self.fetch_user(epic_username)
 
-            if user is not None:
-                epic_friend = self.get_friend(user.id)
-            else:
-                epic_friend = None
-                await ctx.send(f'Cant find a user with the name: {epic_username}.')
-                print(crayons.red(f"[ERROR] "
-                                  f"Failed to find user with the name: {epic_username}."))
-
-        if isinstance(epic_friend, fortnitepy.Friend):
-            try:
-                await epic_friend.invite()
-                await ctx.send(f'Invited {epic_friend.display_name} to the party.')
-                print(f"[ERROR] Invited {epic_friend.display_name} to the party.")
-            except fortnitepy.errors.PartyError:
-                await ctx.send('Failed to invite friend as they are either already in the party or it is full.')
-                print(crayons.red(f"[ERROR] "
-                                  "Failed to invite to party as friend is already either in party or it is full."))
-        else:
-            await ctx.send('Cannot invite to party as the friend is not found.')
-            print(crayons.red(f"[ERROR] "
-                              "Failed to invite to party as the friend is not found."))
-                      
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Joins the party of the defined friend. If friend is left blank, "
-                    "the message author will be used.",
-        help="Joins the party of the defined friend.\n"
-             "Example: !join Terbau"
-    )
-    async def join(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: Optional[str] = None) -> None:
-        if epic_username is None:
-            epic_friend = self.get_friend(ctx.author.id)
-        else:
-            user = await self.fetch_user(epic_username)
-
-            if user is not None:
-                epic_friend = self.get_friend(user.id)
-            else:
-                epic_friend = None
-                await ctx.send(f'Failed to find user with the name: {epic_username}.')
-
-        if isinstance(epic_friend, fortnitepy.Friend):
-            try:
-                await epic_friend.join_party()
-                await ctx.send(f'Joined the party of {epic_friend.display_name}.')
-            except fortnitepy.errors.Forbidden:
-                await ctx.send('Failed to join party since it is private.')
-            except fortnitepy.errors.PartyError:
-                await ctx.send('Party not found, are you sure party is pubblic?')
-        else:
-            await ctx.send('Cannot join party as the friend is not found.')        
-    
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Clears/stops the emote currently playing.",
-        help="Clears/stops the emote currently playing.\n"
-             "Example: !stop"
-    )
-    async def stop(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        await self.party.me.clear_emote()
-        await ctx.send('Ok I stop doing everything!')
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Sets the parties current privacy.",
-        help="Sets the parties current privacy.\n"
-             "Example: !privacy private"
-    )
-    async def privacy(self, ctx: fortnitepy.ext.commands.Context, privacy_type: str) -> None:
+    if message.content.upper().startswith("CID_"):
+        await client.party.me.set_outfit(asset=message.content.upper())
+        await message.reply(f"Skin set to: {message.content}")
+    elif message.content.upper().startswith("BID_"):
+        await client.party.me.set_backpack(asset=message.content.upper())
+        await message.reply(f"Backpack set to: {message.content}")
+    elif message.content.upper().startswith("EID_"):
+        await client.party.me.set_emote(asset=message.content.upper())
+        await message.reply(f"Emote set to: {message.content}")
+    elif message.content.upper().startswith("PID_"):
+        await client.party.me.set_pickaxe(asset=message.content.upper())
+        await message.reply(f"Pickaxe set to: {message.content}")
+    elif message.content.startswith("Playlist_"):
         try:
-            if privacy_type.lower() == 'public':
-                await self.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
-            elif privacy_type.lower() == 'private':
-                await self.party.set_privacy(fortnitepy.PartyPrivacy.PRIVATE)
-            elif privacy_type.lower() == 'friends':
-                await self.party.set_privacy(fortnitepy.PartyPrivacy.FRIENDS)
-            elif privacy_type.lower() == 'friends_allow_friends_of_friends':
-                await self.party.set_privacy(fortnitepy.PartyPrivacy.FRIENDS_ALLOW_FRIENDS_OF_FRIENDS)
-            elif privacy_type.lower() == 'private_allow_friends_of_friends':
-                await self.party.set_privacy(fortnitepy.PartyPrivacy.PRIVATE_ALLOW_FRIENDS_OF_FRIENDS)
+            await client.party.set_playlist(playlist=message.content)
+            await message.reply(f"Playlist set to: {message.content}")
+        except fortnitepy.Forbidden:
+            await message.reply(
+                f"I can not set gamemode because I am not party leader."
+            )
+    elif message.content.lower().startswith("prefix"):
+        await message.reply(f"Current prefix: !")
 
-            await ctx.send(f'Party privacy set to {self.party.privacy}.')
-            print(f'Party privacy set to {self.party.privacy}.')
 
-        except fortnitepy.errors.Forbidden:
-            await ctx.send(f"Failed to set party privacy to {privacy_type}, as I'm not party leader.")
-            print(crayons.red(f"[ERROR] "
-                              "Failed to set party privacy as I don't have the required permissions."))
+@client.event
+async def event_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send(f"")
+    elif isinstance(error, IndexError):
+        pass
+    elif isinstance(error, fortnitepy.HTTPException):
+        pass
+    elif isinstance(error, commands.CheckFailure):
+        await ctx.send("")
+    elif isinstance(error, TimeoutError):
+        await ctx.send("You took too long to respond!")
+    else:
+        print(error)
 
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Kicks the inputted user.",
-        help="Kicks the inputted user.\n"
-             "Example: !kick GhostLeaks"
-    )
-    async def kick(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: str) -> None:
-        user = await self.fetch_user(epic_username)
-        member = self.party.members.get(user.id)
-
-        if member is None:
-            await ctx.send("Failed to find that user, are you sure they're in the party?")
-        else:
-            try:
-                await member.kick()
-                await ctx.send(f"Kicked user: {member.display_name}.")
-                print(f"Kicked user: {member.display_name}")
-            except fortnitepy.errors.Forbidden:
-                await ctx.send(f"I can't kick {member.display_name}, as I'm not party leader.")
-                print(crayons.red(f"[ERROR] "
-                                  "Failed to kick member as I don't have the required permissions."))
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Sets the level of the self.",
-        help="Sets the level of the self.\n"
-             "Example: !level 999"
-    )
-    async def level(self, ctx: fortnitepy.ext.commands.Context, banner_level: int) -> None:
-        await self.party.me.set_banner(
-            season_level=banner_level
-        )
-
-        await ctx.send(f'Set level to {banner_level}. \nTo get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+@client.command()
+async def ghostleaks(ctx):
+    await ctx.send('With GhostFN you can easly create your own lobby bot in less than 5 minutes!')
     
-    @commands.dm_only()
-    @commands.command(
-        description="[Party] Leaves the current party.",
-        help="Leaves the current party.\n"
-             "Example: !leave"
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#Gold-style
+    
+@client.command()
+async def goldcat(ctx):
+    variants = client.party.me.create_variants(progressive=4)
+
+    await client.party.me.set_outfit(
+        asset='CID_693_Athena_Commando_M_BuffCat',
+        variants=variants,
+        enlightenment=(2, 350)
     )
-    async def leave(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        await self.party.me.set_emote('EID_Snap')
-        await asyncio.sleep(2.0)
-        await self.party.me.leave()
-        await ctx.send('Bye!')
 
-        print(f'Left the party as I was requested.')
+    await ctx.send('Skin set to: Golden cat')
+    
+@client.command()
+async def goldtnt(ctx):
+    variants = client.party.me.create_variants(progressive=8)
 
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to Pink Ghoul Trooper.",
-        help="Sets the outfit of the client to Pink Ghoul Trooper.\n"
-             "Example: !pinkghoul"
+    await client.party.me.set_outfit(
+        asset='CID_691_Athena_Commando_F_TNTina',
+        variants=variants,
+        enlightenment=(2, 350)
     )
-    async def pinkghoul(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        skin_variants = self.party.me.create_variants(
-            material=3
-        )
 
-        await self.party.me.set_outfit(
-            asset='CID_029_Athena_Commando_F_Halloween',
-            variants=skin_variants
-        )
+    await ctx.send('Skin set to: Golden Tntina')
+    
+@client.command()
+async def goldpeely(ctx):
+    variants = client.party.me.create_variants(progressive=4)
 
-        await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
-        print(f"Skin set to Pink Ghoul Trooper.") 
-
-    @commands.dm_only()
-    @commands.command(
-        description="[Cosmetic] Sets the outfit of the client to Purple Skull Trooper.",
-        help="Sets the outfit of the client to Purple Skull Trooper.\n"
-             "Example: !purpleskull"
+    await client.party.me.set_outfit(
+        asset='CID_701_Athena_Commando_M_BananaAgent',
+        variants=variants,
+        enlightenment=(2, 350)
     )
-    async def purpleskull(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        skin_variants = self.party.me.create_variants(
-            clothing_color=1
-        )
 
-        await self.party.me.set_outfit(
-            asset='CID_030_Athena_Commando_M_Halloween',
-            variants=skin_variants
-        )
+    await ctx.send('Skin set to: Golden Peely')
+@client.command()
+async def dab(ctx, *, content=None):
+    await client.party.me.set_emote(asset="eid_dab")
+    
+    
+    
+    
+@client.command()
+async def sit(ctx, *, content=None):
+    await client.party.me.set_emote(asset="eid_sitpapayacomms")
+    
+    
 
-        await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
-        print(f"Skin set to Purpleskull.")
+@client.command()
+async def goldskye(ctx):
+    variants = client.party.me.create_variants(progressive=4)
 
-    @commands.dm_only()
-    @commands.command()
-    async def skin(self, ctx: fortnitepy.ext.commands.Context, *, content: str):
+    await client.party.me.set_outfit(
+        asset='CID_690_Athena_Commando_F_Photographer',
+        variants=variants,
+        enlightenment=(2, 350)
+    )
+
+    await ctx.send('Skin set to: Golden Skye')
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#GOLD SEASON 14 style-skin
+
+    
+@client.command()
+async def thor2(ctx):
+    variants = client.party.me.create_variants(progressive=2)
+
+    await client.party.me.set_outfit(
+        asset='CID_845_Athena_Commando_M_HightowerTapas',
+        variants=variants,
+        enlightenment=(2, 350)
+    )
+
+    await ctx.send('Skin set to: lightning thor')
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#style-skin
+@client.command()
+async def pinkghoul(ctx):
+    variants = client.party.me.create_variants(material=3)
+
+    await client.party.me.set_outfit(
+        asset='CID_029_Athena_Commando_F_Halloween',
+        variants=variants
+    )
+
+    await ctx.send('Skin set to: Pink ghoul')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+@client.command()
+async def purpleskull(ctx):
+    variants = client.party.me.create_variants(clothing_color=1)
+
+    await client.party.me.set_outfit(
+        asset='CID_030_Athena_Commando_M_Halloween',
+        variants=variants
+    )
+
+    await ctx.send('Skin set to: purple skull')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+# customize command
+
+@client.command()
+async def defaults(ctx):
+    await ctx.send(f"old defaults..")
+    await client.party.me.set_outfit(asset="cid_001_athena_commando_f_default")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_002_athena_commando_f_default")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_003_athena_commando_f_default")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_004_athena_commando_f_default")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_005_athena_commando_m_default")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_006_athena_commando_m_default")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_007_athena_commando_m_default")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_008_athena_commando_m_default")
+    await asyncio.sleep(2.25)
+    await ctx.send(f"Chapter 2!!")
+    await client.party.me.set_outfit(asset="cid_556_athena_commando_f_rebirthdefaulta")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_557_athena_commando_f_rebirthdefaultb")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_558_athena_commando_f_rebirthdefaultc")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_559_athena_commando_f_rebirthdefaultd")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_560_athena_commando_m_rebirthdefaulta")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_561_athena_commando_m_rebirthdefaultb")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_562_athena_commando_m_rebirthdefaultc")
+    await asyncio.sleep(1.25)
+    await client.party.me.set_outfit(asset="cid_563_athena_commando_m_rebirthdefaultd")
+    await asyncio.sleep(1.25)
+
+    await ctx.send(
+        f"There was all defaults! "
+    )
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+
+@client.command()
+async def zombie(ctx):
+    await client.party.me.set_outfit(asset="cid_589_athena_commando_m_soccerzombiea")
+    await client.party.me.set_emote(asset="eid_zombiewalk")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_590_athena_commando_m_soccerzombieb")
+    await client.party.me.set_emote(asset="eid_zombiewalk")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_591_athena_commando_m_soccerzombiec")
+    await client.party.me.set_emote(asset="eid_zombiewalk")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_592_athena_commando_m_soccerzombied")
+    await client.party.me.set_emote(asset="eid_zombiewalk")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_593_athena_commando_f_soccerzombiea")
+    await client.party.me.set_emote(asset="eid_zombiewalk")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_594_athena_commando_f_soccerzombieb")
+    await client.party.me.set_emote(asset="eid_zombiewalk")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_595_athena_commando_f_soccerzombiec")
+    await client.party.me.set_emote(asset="eid_zombiewalk")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_596_athena_commando_f_soccerzombied")
+    await client.party.me.set_emote(asset="eid_zombiewalk")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await ctx.send(
+        f"Zombie skins! "
+    )
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+@client.command()
+async def soccer(ctx):
+    await client.party.me.set_outfit(asset="cid_144_athena_commando_m_soccerdudea")
+    await client.party.me.set_emote(asset="eid_soccerjuggling")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_145_athena_commando_m_soccerdudeb")
+    await client.party.me.set_emote(asset="eid_soccerjuggling")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_146_athena_commando_m_soccerdudec")
+    await client.party.me.set_emote(asset="eid_soccerjuggling")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_147_athena_commando_m_soccerduded")
+    await client.party.me.set_emote(asset="eid_soccerjuggling")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_148_athena_commando_f_soccergirla")
+    await client.party.me.set_emote(asset="eid_soccerjuggling")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_149_athena_commando_f_soccergirlb")
+    await client.party.me.set_emote(asset="eid_soccerjuggling")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_150_athena_commando_f_soccergirlc")
+    await client.party.me.set_emote(asset="eid_soccerjuggling")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await client.party.me.set_outfit(asset="cid_151_athena_commando_f_soccergirld")
+    await client.party.me.set_emote(asset="eid_soccerjuggling")
+    await asyncio.sleep(2.25)
+    await client.party.me.clear_emote()
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+ 
+@client.command()
+async def ecu(ctx):
+    await client.party.me.set_outfit(asset="cid_226_athena_commando_f_octoberfest")
+    await client.party.me.set_emote(asset="eid_bollywood")
+
+@client.command()
+async def fruit(ctx):
+    await client.party.me.set_outfit(asset="CID_764_Athena_Commando_F_Loofah")
+    await client.party.me.set_emote(asset="EID_Loofah")
+    
+
+@client.command()
+async def nessa(ctx):
+    await client.party.me.set_outfit(
+        asset='CID_313_Athena_Commando_M_KpopFashion'
+    )
+    
+    await ctx.send("Skin set to: ikonik")
+    
+@client.command()
+async def witch(ctx):
+    await client.party.me.set_outfit(
+        asset='CID_608_Athena_Commando_F_ModernWitch'
+    )
+    
+    await ctx.send("Skin set to: witch")
+    
+@client.command()
+async def bot(ctx):
+    await client.party.me.set_outfit(
+        asset='CID_NPC_Athena_Commando_M_HightowerHenchman'
+    )
+    
+    await ctx.send("Skin set to: bot")
+
+
+# basic commands
+@client.command()
+async def skin(ctx, *, content = None):
+    if content is None:
+        await ctx.send(f'No skin was given, try: {prefix}skin (skin name)')
+    elif content.upper().startswith('CID_'):
+        await client.party.me.set_outfit(asset=content.upper())
+        await ctx.send(f'Skin set to: {content}')
+    else:
         try:
-            cosmetic = await self.fortnite_api.cosmetics.get_cosmetic(
+            cosmetic = await BenBotAsync.get_cosmetic(
                 lang="en",
                 searchLang="en",
-                matchMethod="contains",
                 name=content,
                 backendType="AthenaCharacter"
             )
+            await client.party.me.set_outfit(asset=cosmetic.id)
+            await ctx.send(f'Skin set to: {cosmetic.name}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find a skin named: {content}')
 
-            print(f"[>] Set skin to: {cosmetic.id}.")
-            await self.party.me.set_outfit(asset=cosmetic.id)
 
-        except FortniteAPIAsync.exceptions.NotFound:
-            
-            print(f"[!] Failed to find a skin with the name: {content}.")
-
-    @commands.dm_only()
-    @commands.command()
-    async def backpack(self, ctx: fortnitepy.ext.commands.Context, *, content: str):
+@client.command()
+async def backpack(ctx, *, content = None):
+    if content is None:
+        await ctx.send(f'No backpack was given, try: {prefix}backpack (backpack name)')
+    elif content.lower() == 'none':
+        await client.party.me.clear_backpack()
+        await ctx.send('Backpack set to: None')
+    elif content.upper().startswith('BID_'):
+        await client.party.me.set_backpack(asset=content.upper())
+        await ctx.send(f'Backpack set to: {content}')
+    else:
         try:
-            cosmetic = await self.fortnite_api.cosmetics.get_cosmetic(
+            cosmetic = await BenBotAsync.get_cosmetic(
                 lang="en",
                 searchLang="en",
                 matchMethod="contains",
                 name=content,
                 backendType="AthenaBackpack"
             )
+            await client.party.me.set_backpack(asset=cosmetic.id)
+            await ctx.send(f'Backpack set to: {cosmetic.name}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find a backpack named: {content}')
 
-            print(f"[>] Set backpack to: [{cosmetic.id}]")
-            await self.party.me.set_backpack(asset=cosmetic.id)
 
-        except FortniteAPIAsync.exceptions.NotFound:
-            print(f"[!] Failed to find a backpack with the name: [{content}]")
-
-    @commands.dm_only()
-    @commands.command()
-    async def emote(self, ctx: fortnitepy.ext.commands.Context, *, content: str):
+@client.command()
+async def emote(ctx, *, content = None):
+    if content is None:
+        await ctx.send(f'No emote was given, try: {prefix}emote (emote name)')
+    elif content.lower() == 'floss':
+        await client.party.me.clear_emote()
+        await client.party.me.set_emote(asset='EID_Floss')
+        await ctx.send(f'Emote set to: Floss')
+    elif content.lower() == 'none':
+        await client.party.me.clear_emote()
+        await ctx.send(f'Emote set to: None')
+    elif content.upper().startswith('EID_'):
+        await client.party.me.clear_emote()
+        await client.party.me.set_emote(asset=content.upper())
+        await ctx.send(f'Emote set to: {content}')
+    else:
         try:
-            cosmetic = await self.fortnite_api.cosmetics.get_cosmetic(
+            cosmetic = await BenBotAsync.get_cosmetic(
                 lang="en",
                 searchLang="en",
                 matchMethod="contains",
                 name=content,
                 backendType="AthenaDance"
             )
+            await client.party.me.clear_emote()
+            await client.party.me.set_emote(asset=cosmetic.id)
+            await ctx.send(f'Emote set to: {cosmetic.name}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find an emote named: {content}')
 
-            print(f"[>] Set emote to: {cosmetic.id}.")
-            await self.party.me.clear_emote()
-            await self.party.me.set_emote(asset=cosmetic.id)
+@client.command()
+async def pickaxe(ctx, *, content = None):
+    if content is None:
+        await ctx.send(f'No pickaxe was given, try: {prefix}pickaxe (pickaxe name)')
+    elif content.upper().startswith('Pickaxe_'):
+        await client.party.me.set_pickaxe(asset=content.upper())
+        await ctx.send(f'Pickaxe set to: {content}')
+    else:
+        try:
+            cosmetic = await BenBotAsync.get_cosmetic(
+                lang="en",
+                searchLang="en",
+                matchMethod="contains",
+                name=content,
+                backendType="AthenaPickaxe"
+            )
+            await client.party.me.set_pickaxe(asset=cosmetic.id)
+            await ctx.send(f'Pickaxe set to: {cosmetic.name}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find a pickaxe named: {content}')
 
-        except FortniteAPIAsync.exceptions.NotFound:
-            print(f"[!] Failed to find an emote with the name: [{content}]")
+
+@client.command()
+async def pet(ctx, *, content = None):
+    if content is None:
+        await ctx.send(f'No pet was given, try: {prefix}pet (pet name)')
+    elif content.lower() == 'none':
+        await client.party.me.clear_pet()
+        await ctx.send('Pet set to: None')
+    else:
+        try:
+            cosmetic = await BenBotAsync.get_cosmetic(
+                lang="en",
+                searchLang="en",
+                matchMethod="contains",
+                name=content,
+                backendType="AthenaPet"
+            )
+            await client.party.me.set_pet(asset=cosmetic.id)
+            await ctx.send(f'Pet set to: {cosmetic.name}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find a pet named: {content}')
 
 
-if os.getenv("EMAIL") and os.getenv("PASSWORD"):
-    bot = EasyBot(
-        email=os.getenv("EMAIL"),
-        password=os.getenv("PASSWORD")
+
+@client.command()
+async def emoji(ctx, *, content = None):
+    if content is None:
+        await ctx.send(f'No emoji was given, try: {prefix}emoji (emoji name)')
+    try:
+        cosmetic = await BenBotAsync.get_cosmetic(
+            lang="en",
+            searchLang="en",
+            matchMethod="contains",
+            name=content,
+            backendType="AthenaEmoji"
+        )
+        await client.party.me.clear_emoji()
+        await client.party.me.set_emoji(asset=cosmetic.id)
+        await ctx.send(f'Emoji set to: {cosmetic.name}')
+    except BenBotAsync.exceptions.NotFound:
+        await ctx.send(f'Could not find an emoji named: {content}')
+
+    
+
+@client.command()
+async def current(ctx, setting = None):
+    if setting is None:
+        await ctx.send(f"Missing argument. Try: {prefix}current (skin, backpack, emote, pickaxe, banner)")
+    elif setting.lower() == 'banner':
+        await ctx.send(f'Banner ID: {client.party.me.banner[0]}  -  Banner Color ID: {client.party.me.banner[1]}')
+    else:
+        try:
+            if setting.lower() == 'skin':
+                    cosmetic = await BenBotAsync.get_cosmetic_from_id(
+                        cosmetic_id=client.party.me.outfit
+                    )
+
+            elif setting.lower() == 'backpack':
+                    cosmetic = await BenBotAsync.get_cosmetic_from_id(
+                        cosmetic_id=client.party.me.backpack
+                    )
+
+            elif setting.lower() == 'emote':
+                    cosmetic = await BenBotAsync.get_cosmetic_from_id(
+                        cosmetic_id=client.party.me.emote
+                    )
+
+            elif setting.lower() == 'pickaxe':
+                    cosmetic = await BenBotAsync.get_cosmetic_from_id(
+                        cosmetic_id=client.party.me.pickaxe
+                    )
+
+            await ctx.send(f"My current {setting} is: {cosmetic.name}")
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f"I couldn't find a {setting} name for that.")
+
+
+@client.command()
+async def gift(ctx):
+    await client.party.me.set_emote(asset="EID_nevergonna")
+
+    await ctx.send(f"What did you think would happen?")
+    await asyncio.sleep(10)
+    await client.party.me.clear_emote()
+
+@client.command()
+async def marvel(ctx):
+    await ctx.send(f"All marvel skins with emotes !")
+    await ctx.send(f"Thor !")
+    await client.party.me.set_backpack(asset="bid_600_hightowertapas")
+    await client.party.me.set_outfit(asset="cid_845_athena_commando_m_hightowertapas")
+    await client.party.me.set_emote(asset="eid_hightowertapas")
+    await asyncio.sleep(3.25)
+    await ctx.send(f"She-Hulk !")
+    await client.party.me.set_backpack(asset="bid_594_hightowerhoneydew")
+    await client.party.me.set_outfit(
+        asset="cid_842_athena_commando_f_hightowerhoneydew"
+    )
+    await client.party.me.set_emote(asset="eid_hightowerhoneydew")
+    await asyncio.sleep(3.25)
+    await ctx.send(f"Groot !")
+    await client.party.me.set_backpack(asset="bid_598_hightowergrape")
+    await client.party.me.set_outfit(asset="cid_840_athena_commando_m_hightowergrape")
+    await client.party.me.set_emote(asset="eid_hightowergrape")
+    await asyncio.sleep(3.25)
+    await ctx.send(f"Storm !")
+    await client.party.me.set_outfit(asset="cid_839_athena_commando_f_hightowersquash")
+    await client.party.me.set_emote(asset="eid_hightowersquash")
+    await asyncio.sleep(3.25)
+    await ctx.send(f"Doctor Doom !")
+    await client.party.me.set_backpack(asset="bid_599_hightowerdate")
+    await client.party.me.set_outfit(asset="cid_846_athena_commando_m_hightowerdate")
+    await client.party.me.set_emote(asset="eid_hightowerdate")
+    await asyncio.sleep(5.25)
+    await ctx.send(f"Mystique !")
+    await client.party.me.set_backpack(asset="bid_595_hightowermango")
+    await client.party.me.set_outfit(asset="cid_844_athena_commando_f_hightowermango")
+    await client.party.me.set_emote(asset="eid_hightowermango")
+    await asyncio.sleep(2.25)
+    await ctx.send(f"Ironman !")
+    await client.party.me.set_backpack(asset="bid_596_hightowertomato")
+    await client.party.me.set_outfit(
+        asset="cid_843_athena_commando_m_hightowertomato_casual"
+    )
+    await client.party.me.set_emote(asset="eid_hightowertomato")
+    await asyncio.sleep(4.25)
+    await ctx.send(f"Wolverine !")
+    await client.party.me.set_backpack(asset="bid_597_hightowerwasabi")
+    await client.party.me.set_outfit(asset="cid_841_athena_commando_m_hightowerwasabi")
+    await client.party.me.set_emote(asset="eid_hightowerwasabi")
+    await asyncio.sleep(4.25)
+    await ctx.send(f"Silver Surfer !")
+    await client.party.me.set_backpack(asset="bid_605_soy_y0dw7")
+    await client.party.me.set_skin(asset="cid_847_athena_commando_m_soy_2as3cg")
+    await ctx.send(
+        f"All the marvel skins! "
+    )
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+@client.command()
+async def name(ctx, *, content=None):
+    if content is None:
+        await ctx.send(f'No ID was given, try: {prefix}name (cosmetic ID)')
+    else:
+        try:
+            cosmetic = await BenBotAsync.get_cosmetic_from_id(
+                cosmetic_id=content
+            )
+            await ctx.send(f'The name for that ID is: {cosmetic.name}')
+            print(f' [+] The name for {cosmetic.id} is: {cosmetic.name}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find a cosmetic name for ID: {content}')
+
+
+
+@client.command()
+async def cid(ctx, *, content = None):
+    if content is None:
+        await ctx.send(f'No skin was given, try: {prefix}cid (skin name)')
+    else:
+        try:
+            cosmetic = await BenBotAsync.get_cosmetic(
+                lang="en",
+                searchLang="en",
+                matchMethod="contains",
+                name=content,
+                backendType="AthenaCharacter"
+            )
+            await ctx.send(f'The CID for {cosmetic.name} is: {cosmetic.id}')
+            print(f' [+] The CID for {cosmetic.name} is: {cosmetic.id}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find a skin named: {content}')
+        
+
+@client.command()
+async def bid(ctx, *, content):
+    if content is None:
+        await ctx.send(f'No backpack was given, try: {prefix}bid (backpack name)')
+    else:
+        try:
+            cosmetic = await BenBotAsync.get_cosmetic(
+                lang="en",
+                searchLang="en",
+                matchMethod="contains",
+                name=content,
+                backendType="AthenaBackpack"
+            )
+            await ctx.send(f'The BID for {cosmetic.name} is: {cosmetic.id}')
+            print(f' [+] The BID for {cosmetic.name} is: {cosmetic.id}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find a backpack named: {content}')
+
+
+
+@client.command()
+async def eid(ctx, *, content):
+    if content is None:
+        await ctx.send(f'No emote was given, try: {prefix}eid (emote name)')
+    elif content.lower() == 'floss':
+        await ctx.send(f'The EID for Floss is: EID_Floss')
+    else:
+        try:
+            cosmetic = await BenBotAsync.get_cosmetic(
+                lang="en",
+                searchLang="en",
+                matchMethod="contains",
+                name=content,
+                backendType="AthenaDance"
+            )
+            await ctx.send(f'The EID for {cosmetic.name} is: {cosmetic.id}')
+            print(f' [+] The EID for {cosmetic.name} is: {cosmetic.id}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find an emote named: {content}')
+
+
+
+@client.command()
+async def pid(ctx, *, content):
+    if content is None:
+        await ctx.send(f'No pickaxe was given, try: {prefix}pid (pickaxe name)')
+    else:
+        try:
+            cosmetic = await BenBotAsync.get_cosmetic(
+                lang="en",
+                searchLang="en",
+                matchMethod="contains",
+                name=content,
+                backendType="AthenaPickaxe"
+            )
+            await ctx.send(f'The PID for {cosmetic.name} is: {cosmetic.id}')
+            print(f' [+] The PID for {cosmetic.name} is: {cosmetic.id}')
+        except BenBotAsync.exceptions.NotFound:
+            await ctx.send(f'Could not find a pickaxe named: {content}')
+
+
+
+@client.command()
+async def random(ctx, content = None):
+
+    skins = await BenBotAsync.get_cosmetics(
+        lang="en",
+        backendType="AthenaCharacter"
     )
 
-    bot.run()
-    print(f"[>] Bot is ready")
+    skin = rand.choice(skins)
+
+    backpacks = await BenBotAsync.get_cosmetics(
+        lang="en",
+        backendType="AthenaBackpack"
+    )
+
+    backpack = rand.choice(backpacks)
+
+    emotes = await BenBotAsync.get_cosmetics(
+        lang="en",
+        backendType="AthenaDance"
+    )
+
+    emote = rand.choice(emotes)
+
+    pickaxes = await BenBotAsync.get_cosmetics(
+        lang="en",
+        backendType="AthenaPickaxe"
+    )
+
+    pickaxe = rand.choice(pickaxes)
+
+    
+    if content is None:
+        me = client.party.me
+        await me.set_outfit(asset=skin.id)
+        await me.set_backpack(asset=backpack.id)
+        await me.set_pickaxe(asset=pickaxe.id)
+
+        await ctx.send(f'Loadout randomly set to: {skin.name}, {backpack.name}, {pickaxe.name}')
+    else:
+        if content.lower() == 'skin':
+            await client.party.me.set_outfit(asset=skin.id)
+            await ctx.send(f'Skin randomly set to: {skin.name}')
+
+        elif content.lower() == 'backpack':
+            await client.party.me.set_backpack(asset=backpack.id)
+            await ctx.send(f'Backpack randomly set to: {backpack.name}')
+
+        elif content.lower() == 'emote':
+            await client.party.me.set_emote(asset=emote.id)
+            await ctx.send(f'Emote randomly set to: {emote.name}')
+
+        elif content.lower() == 'pickaxe':
+            await client.party.me.set_pickaxe(asset=pickaxe.id)
+            await ctx.send(f'Pickaxe randomly set to: {pickaxe.name}')
+
+        else:
+            await ctx.send(f"I don't know that, try: {prefix}random (skin, backpack, emote, pickaxe - og, exclusive, unreleased")
+
+@client.command()
+async def hide(ctx, *, user=None):
+    if client.party.me.leader:
+        if user != "all":
+            try:
+                if user is None:
+                    user = await client.fetch_profile(ctx.message.author.id)
+                    member = client.party.members.get(user.id)
+                else:
+                    user = await client.fetch_profile(user)
+                    member = client.party.members.get(user.id)
+
+                raw_squad_assignments = client.party.meta.get_prop(
+                    "Default:RawSquadAssignments_j"
+                )["RawSquadAssignments"]
+
+                for m in raw_squad_assignments:
+                    if m["memberId"] == member.id:
+                        raw_squad_assignments.remove(m)
+
+                await set_and_update_party_prop(
+                    "Default:RawSquadAssignments_j",
+                    {"RawSquadAssignments": raw_squad_assignments},
+                )
+
+                await ctx.send(f"Hid {member.display_name}")
+            except AttributeError:
+                await ctx.send("I could not find that user.")
+            except fortnitepy.HTTPException:
+                await ctx.send("I am not party leader.")
+        else:
+            try:
+                await set_and_update_party_prop(
+                    "Default:RawSquadAssignments_j",
+                    {
+                        "RawSquadAssignments": [
+                            {"memberId": client.user.id, "absoluteMemberIdx": 1}
+                        ]
+                    },
+                )
+
+                await ctx.send("Hid everyone in the party.")
+            except fortnitepy.HTTPException:
+                await ctx.send("I am not party leader.")
+    else:
+        await ctx.send("I need party leader to do this!")
+
+
+@client.command()
+async def unhide(ctx):
+    if client.party.me.leader:
+        user = await client.fetch_profile(ctx.message.author.id)
+        member = client.party.members.get(user.id)
+
+        await promote()
+
+        await ctx.send("Unhid all players.")
+
+    else:
+        await ctx.send("I am not party leader.")
+
+@client.command()
+async def point(ctx, *, content = None):
+    if content is None:
+        await client.party.me.clear_emote()
+        await client.party.me.set_emote(asset='EID_IceKing')
+        await ctx.send(f'Pointing with: {client.party.me.pickaxe}')
+    
+    else:
+        if content.upper().startswith('Pickaxe_'):
+            await client.party.me.set_pickaxe(asset=content.upper())
+            await client.party.me.clear_emote()
+            asyncio.sleep(0.25)
+            await client.party.me.set_emote(asset='EID_IceKing')
+            await ctx.send(f'Pointing with: {content}')
+        else:
+            try:
+                cosmetic = await BenBotAsync.get_cosmetic(
+                    lang="en",
+                    searchLang="en",
+                    matchMethod="contains",
+                    name=content,
+                    backendType="AthenaPickaxe"
+                )
+                await client.party.me.set_pickaxe(asset=cosmetic.id)
+                await client.party.me.clear_emote()
+                await client.party.me.set_emote(asset='EID_IceKing')
+                await ctx.send(f'Pointing with: {cosmetic.name}')
+            except BenBotAsync.exceptions.NotFound:
+                await ctx.send(f'Could not find a pickaxe named: {content}')
+
+
+
+
+
+@client.command()
+async def floss(ctx, *, content=None):
+    await client.party.me.set_emote(asset="eid_floss")
+
+
+
+
+
+@client.command()
+async def ninja(ctx):
+    await client.party.me.set_outfit(asset="cid_605_athena_commando_m_tourbus")
+    await client.party.me.set_backpack(asset="bid_402_tourbus")
+    await client.party.me.set_emote(asset="eid_tourbus")
+
+
+@client.command()
+async def hologram(ctx):
+    await client.party.me.set_outfit(
+        asset='CID_VIP_Athena_Commando_M_GalileoGondola_SG'
+    )
+    
+    await ctx.send("Skin set to: Hologram")
+
+
+@client.command()
+async def last(ctx):
+    await client.party.me.set_emote(
+        asset='EID_TwistEternity'
+    )
+    
+    await ctx.send("Emote set to: Last Forever")
+
+
+
+@client.command()
+async def itemshop(ctx):
+    previous_skin = client.party.me.outfit
+
+    store = await client.fetch_item_shop()
+
+    await ctx.send("Equipping all item shop skins + emotes")
+
+    for cosmetic in store.featured_items + store.daily_items:
+        for grant in cosmetic.grants:
+            if grant['type'] == 'AthenaCharacter':
+                await client.party.me.set_outfit(asset=grant['asset'])
+                await asyncio.sleep(5)
+            elif grant['type'] == 'AthenaDance':
+                await client.party.me.clear_emote()
+                await client.party.me.set_emote(asset=grant['asset'])
+                await asyncio.sleep(5)
+
+    await client.party.me.clear_emote()
+    
+    await ctx.send("Done!")
+
+    await asyncio.sleep(1.5)
+
+    await client.party.me.set_outfit(asset=previous_skin)
+
+
+
+@client.command()
+async def new(ctx, content = None):
+    newSkins = getNewSkins()
+    newEmotes = getNewEmotes()
+
+    previous_skin = client.party.me.outfit
+
+    if content is None:
+        await ctx.send(f'There are {len(newSkins) + len(newEmotes)} new skins + emotes')
+
+        for cosmetic in newSkins + newEmotes:
+            if cosmetic.startswith('CID_'):
+                await client.party.me.set_outfit(asset=cosmetic)
+                await asyncio.sleep(4)
+            elif cosmetic.startswith('EID_'):
+                await client.party.me.clear_emote()
+                await client.party.me.set_emote(asset=cosmetic)
+                await asyncio.sleep(4)
+
+    elif 'skin' in content.lower():
+        await ctx.send(f'There are {len(newSkins)} new skins')
+
+        for skin in newSkins:
+            await client.party.me.set_outfit(asset=skin)
+            await asyncio.sleep(4)
+
+    elif 'emote' in content.lower():
+        await ctx.send(f'There are {len(newEmotes)} new emotes')
+
+        for emote in newEmotes:
+            await client.party.me.clear_emote()
+            await client.party.me.set_emote(asset=emote)
+            await asyncio.sleep(4)
+
+    await client.party.me.clear_emote()
+    
+    await ctx.send('Done!')
+
+    await asyncio.sleep(1.5)
+
+    await client.party.me.set_outfit(asset=previous_skin)
+
+    if (content is not None) and ('skin' or 'emote' not in content.lower()):
+        ctx.send(f"Not a valid option. Try: {prefix}new (skins, emotes)")
+
+
+
+@client.command()
+async def ready(ctx):
+    await client.party.me.set_ready(fortnitepy.ReadyState.READY)
+    await ctx.send('Ready!')
+
+
+
+@client.command()
+async def unready(ctx):
+    await client.party.me.set_ready(fortnitepy.ReadyState.NOT_READY)
+    await ctx.send('Unready!')
+
+
+@client.command()
+async def sitin(ctx):
+    await client.party.me.set_ready(fortnitepy.ReadyState.NOT_READY)
+    await ctx.send('Sitting in')
+
+@client.command()
+async def sitout(ctx):
+    await client.party.me.set_ready(fortnitepy.ReadyState.SITTING_OUT)
+    await ctx.send('Sitting out')
+
+
+@client.command()
+async def tier(ctx, tier = None):
+    if tier is None:
+        await ctx.send(f'No tier was given. Try: {prefix}tier (tier number)') 
+    else:
+        await client.party.me.set_battlepass_info(
+            has_purchased=True,
+            level=tier
+        )
+
+        await ctx.send(f'Battle Pass tier set to: {tier}')
+
+
+@client.command()
+async def level(ctx, level = None):
+    if level is None:
+        await ctx.send(f'No level was given. Try: {prefix}level (number)')
+    else:
+        await client.party.me.set_banner(season_level=level)
+        await ctx.send(f'Level set to: {level}')
+
+client.status = '🔥 Made with GhostFN 🔥'
+
+@client.command()
+async def og(ctx):
+    previous_skin = client.party.me.outfit
+    variants = client.party.me.create_variants(material=1)
+
+    await client.party.me.set_outfit(
+        asset="CID_028_Athena_Commando_F", variants=variants
+    )
+    await ctx.send(f"Renegade Raider")
+
+    await asyncio.sleep(2.25)
+    await client.party.me.set_outfit(
+        asset="cid_017_athena_commando_m",
+    )
+    await ctx.send(f"Aerial Assault Trooper")
+
+    await asyncio.sleep(2.25)
+    variants = client.party.me.create_variants(material=3)
+    await client.party.me.set_outfit(
+        asset="CID_029_Athena_Commando_F_Halloween", variants=variants
+    )
+    await ctx.send("Pink Ghoul Trooper")
+
+    await asyncio.sleep(2.25)
+    variants = client.party.me.create_variants(clothing_color=1)
+
+    await client.party.me.set_outfit(
+        asset="CID_030_Athena_Commando_M_Halloween", variants=variants
+    )
+    await ctx.send("Purple Skull Trooper")
+
+    await asyncio.sleep(2.25)
+    await client.party.me.set_outfit(asset=previous_skin)
+
+    await ctx.send(
+        f"Season one og skins "
+     )
+    await ctx.send(
+      f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!"
+     )
+
+@client.command()
+async def banner(ctx, args1 = None, args2 = None):
+    if (args1 is not None) and (args2 is None):
+        if args1.startswith('defaultcolor'):
+            await client.party.me.set_banner(
+                color = args1
+            )
+            
+            await ctx.send(f'Banner color set to: {args1}')
+
+        elif args1.isnumeric() == True:
+            await client.party.me.set_banner(
+                color = 'defaultcolor' + args1
+            )
+
+            await ctx.send(f'Banner color set to: defaultcolor{args1}')
+
+        else:
+            await client.party.me.set_banner(
+                icon = args1
+            )
+
+            await ctx.send(f'Banner Icon set to: {args1}')
+
+    elif (args1 is not None) and (args2 is not None):
+        if args2.startswith('defaultcolor'):
+            await client.party.me.set_banner(
+                icon = args1,
+                color = args2
+            )
+
+            await ctx.send(f'Banner icon set to: {args1} -- Banner color set to: {args2}')
+        
+        elif args2.isnumeric() == True:
+            await client.party.me.set_banner(
+                icon = args1,
+                color = 'defaultcolor' + args2
+            )
+
+            await ctx.send(f'Banner icon set to: {args1} -- Banner color set to: defaultcolor{args2}')
+
+        else:
+            await ctx.send(f'Not proper format. Try: {prefix}banner (Banner ID) (Banner Color ID)')
+
+
+copied_player = ""
+
+
+@client.command()
+async def stop(ctx):
+    global copied_player
+    if copied_player != "":
+        copied_player = ""
+        await ctx.send(f'Stopped copying all users.')
+        return
+    else:
+        try:
+            await client.party.me.clear_emote()
+        except RuntimeWarning:
+            pass
+
+
+
+@client.command()
+async def copy(ctx, *, username = None):
+    global copied_player
+
+    if username is None:
+        user = await client.fetch_profile(ctx.message.author.id)
+        member = client.party.members.get(user.id)
+
+    elif 'stop' in username:
+        copied_player = ""
+        await ctx.send(f'Stopped copying all users.')
+        return
+
+    elif username is not None:
+        try:
+            user = await client.fetch_profile(username)
+            member = client.party.members.get(user.id)
+        except AttributeError:
+            await ctx.send("Could not get that user.")
+            return
+    try:
+        copied_player = member
+
+        await client.party.me.edit_and_keep(
+                partial(
+                    fortnitepy.ClientPartyMember.set_outfit,
+                    asset=member.outfit,
+                    variants=member.outfit_variants
+                ),
+                partial(
+                    fortnitepy.ClientPartyMember.set_backpack,
+                    asset=member.backpack,
+                    variants=member.backpack_variants
+                ),
+                partial(
+                    fortnitepy.ClientPartyMember.set_pickaxe,
+                    asset=member.pickaxe,
+                    variants=member.pickaxe_variants
+                ),
+                partial(
+                    fortnitepy.ClientPartyMember.set_banner,
+                    icon=member.banner[0],
+                    color=member.banner[1],
+                    season_level=member.banner[2]
+                ),
+                partial(
+                    fortnitepy.ClientPartyMember.set_battlepass_info,
+                    has_purchased=member.battlepass_info[0],
+                    level=member.battlepass_info[1]
+                )
+            )
+
+        await ctx.send(f"Now copying: {member.display_name}")
+    except AttributeError:
+        await ctx.send("Could not get that user.")
+
+@client.event()
+async def event_party_member_outfit_change(member, before, after):
+    if member == copied_player:
+        await client.party.me.edit_and_keep(
+            partial(
+                fortnitepy.ClientPartyMember.set_outfit,
+                asset=after,
+                variants=member.outfit_variants
+            )
+        )
+
+@client.event()
+async def event_party_member_outfit_variants_change(member, before, after):
+    if member == copied_player:
+        await client.party.me.edit_and_keep(
+            partial(
+                fortnitepy.ClientPartyMember.set_outfit,
+                variants=member.outfit_variants
+            )
+        )
+
+@client.event()
+async def event_party_member_backpack_change(member, before, after):
+    if member == copied_player:
+        if after is None:
+            await client.party.me.clear_backpack()
+        else:
+            await client.party.me.edit_and_keep(
+                partial(
+                    fortnitepy.ClientPartyMember.set_backpack,
+                    asset=after,
+                    variants=member.backpack_variants
+                )
+            )
+
+@client.event()
+async def event_party_member_backpack_variants_change(member, before, after):
+    if member == copied_player:
+        await client.party.me.edit_and_keep(
+            partial(
+                fortnitepy.ClientPartyMember.set_backpack,
+                variants=member.backpack_variants
+            )
+        )
+
+@client.event()
+async def event_party_member_emote_change(member, before, after):
+    if member == copied_player:
+        if after is None:
+            await client.party.me.clear_emote()
+        else:
+            await client.party.me.edit_and_keep(
+                partial(
+                    fortnitepy.ClientPartyMember.set_emote,
+                    asset=after
+                )
+            )
+
+@client.event()
+async def event_party_member_pickaxe_change(member, before, after):
+    if member == copied_player:
+        await client.party.me.edit_and_keep(
+            partial(
+                fortnitepy.ClientPartyMember.set_pickaxe,
+                asset=after,
+                variants=member.pickaxe_variants
+            )
+        )
+
+@client.event()
+async def event_party_member_pickaxe_variants_change(member, before, after):
+    if member == copied_player:
+        await client.party.me.edit_and_keep(
+            partial(
+                fortnitepy.ClientPartyMember.set_pickaxe,
+                variants=member.pickaxe_variants
+            )
+        )
+
+@client.event()
+async def event_party_member_banner_change(member, before, after):
+    if member == copied_player:
+        await client.party.me.edit_and_keep(
+            partial(
+                fortnitepy.ClientPartyMember.set_banner,
+                icon=member.banner[0],
+                color=member.banner[1],
+                season_level=member.banner[2]
+            )
+        )
+
+@client.event()
+async def event_party_member_battlepass_info_change(member, before, after):
+    if member == copied_player:
+        await client.party.me.edit_and_keep(
+            partial(
+                fortnitepy.ClientPartyMember.set_battlepass_info,
+                has_purchased=member.battlepass_info[0],
+                level=member.battlepass_info[1]
+            )
+        )
+
+async def set_and_update_party_prop(schema_key: str, new_value: str):
+    prop = {schema_key: client.party.me.meta.set_prop(schema_key, new_value)}
+    await client.party.patch(updated=prop)
+
+
+
+
+@client.command()
+async def say(ctx, *, message = None):
+    if message is not None:
+        await client.party.send(message)
+        await ctx.send(f'Sent "{message}" to party chat')
+    else:
+        await ctx.send(f'No message was given. Try: {prefix}say (message)')
+
+
+
+@client.command()
+async def admin(ctx, setting = None, *, user = None):
+    if (setting is None) and (user is None):
+        await ctx.send(f"Missing one or more arguments. Try: {prefix}admin (add, remove, list) (user)")
+    elif (setting is not None) and (user is None):
+
+        user = await client.fetch_profile(ctx.message.author.id)
+
+        if setting.lower() == 'add':
+            if user.id in info['FullAccess']:
+                await ctx.send("You are already an admin")
+
+            else:
+                await ctx.send("Password?")
+                response = await client.wait_for('friend_message', timeout=20)
+                content = response.content.lower()
+                if content == data['AdminPassword']:
+                    info['FullAccess'].append(user.id)
+                    with open('info.json', 'w') as f:
+                        json.dump(info, f, indent=4)
+                        await ctx.send(f"Correct. Added {user.display_name} as an admin.")
+                        print(Fore.GREEN + " [+] " + Fore.LIGHTGREEN_EX + user.display_name + Fore.RESET + " was added as an admin.")
+                else:
+                    await ctx.send("Incorrect Password.")
+
+        elif setting.lower() == 'remove':
+            if user.id not in info['FullAccess']:
+                await ctx.send("You are not an admin.")
+            else:
+                await ctx.send("Are you sure you want to remove yourself as an admin?")
+                response = await client.wait_for('friend_message', timeout=20)
+                content = response.content.lower()
+                if (content.lower() == 'yes') or (content.lower() == 'y'):
+                    info['FullAccess'].remove(user.id)
+                    with open('info.json', 'w') as f:
+                        json.dump(info, f, indent=4)
+                        await ctx.send("You were removed as an admin.")
+                        print(Fore.BLUE + " [+] " + Fore.LIGHTBLUE_EX + user.display_name + Fore.RESET + " was removed as an admin.")
+                elif (content.lower() == 'no') or (content.lower() == 'n'):
+                    await ctx.send("You were kept as admin.")
+                else:
+                    await ctx.send("Not a correct reponse. Cancelling command.")
+                
+        elif setting == 'list':
+            if user.id in info['FullAccess']:
+                admins = []
+
+                for admin in info['FullAccess']:
+                    user = await client.fetch_profile(admin)
+                    admins.append(user.display_name)
+
+                await ctx.send(f"The bot has {len(admins)} admins:")
+
+                for admin in admins:
+                    await ctx.send(admin)
+
+            else:
+                await ctx.send("You don't have permission to this command.")
+
+        else:
+            await ctx.send(f"That is not a valid setting. Try: {prefix}admin (add, remove, list) (user)")
+            
+    elif (setting is not None) and (user is not None):
+        user = await client.fetch_profile(user)
+
+        if setting.lower() == 'add':
+            if ctx.message.author.id in info['FullAccess']:
+                if user.id not in info['FullAccess']:
+                    info['FullAccess'].append(user.id)
+                    with open('info.json', 'w') as f:
+                        json.dump(info, f, indent=4)
+                        await ctx.send(f"Correct. Added {user.display_name} as an admin.")
+                        print(Fore.GREEN + " [+] " + Fore.LIGHTGREEN_EX + user.display_name + Fore.RESET + " was added as an admin.")
+                else:
+                    await ctx.send("That user is already an admin.")
+            else:
+                await ctx.send("You don't have access to add other people as admins. Try just: !admin add")
+        elif setting.lower() == 'remove':
+            if ctx.message.author.id in info['FullAccess']:
+                if user.id in info['FullAccess']:
+                    await ctx.send("Password?")
+                    response = await client.wait_for('friend_message', timeout=20)
+                    content = response.content.lower()
+                    if content == data['AdminPassword']:
+                        info['FullAccess'].remove(user.id)
+                        with open('info.json', 'w') as f:
+                            json.dump(info, f, indent=4)
+                            await ctx.send(f"{user.display_name} was removed as an admin.")
+                            print(Fore.BLUE + " [+] " + Fore.LIGHTBLUE_EX + user.display_name + Fore.RESET + " was removed as an admin.")
+                    else:
+                        await ctx.send("Incorrect Password.")
+                else:
+                    await ctx.send("That person is not an admin.")
+            else:
+                await ctx.send("You don't have permission to remove players as an admin.")
+        else:
+            await ctx.send(f"Not a valid setting. Try: {prefix}admin (add, remove) (user)")
+
+  
+if (data['email'] and data['password']) and (data['email'] != "" and data['password'] != ""):
+    try:
+        client.run()
+    except fortnitepy.errors.AuthException as e:
+        print(Fore.RED + ' [ERROR] ' + Fore.RESET + f'{e}')
+    except ModuleNotFoundError:
+        print(e)
+        print(Fore.RED + f'[-] ' + Fore.RESET + 'Failed to import 1 or more modules. Run "INSTALL PACKAGES.bat')
+        exit()
 else:
-    sys.stderr.write("[!] Enter an Email and Password in the \".env\" file.\n")
-    sys.exit()
+    print(Fore.RED + ' [ERROR] ' + Fore.RESET + 'Can not log in, as no accounts credentials were provided.')
