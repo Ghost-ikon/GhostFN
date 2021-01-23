@@ -1,25 +1,19 @@
 try:
     from typing import Any, Union, Optional
-
     import asyncio
     import datetime
     import json
     import functools
-    import random as py_random
-    import subprocess
     import os
-    import asyncio
-    import uvloop
     import sys
-
+    import random as py_random
     from fortnitepy.ext import commands
-
     import aioconsole
     import crayons
     import fortnitepy
     import FortniteAPIAsync
     import sanic
-    import aiohttp
+    
 except ModuleNotFoundError:
     print(f'[!] Error found, run: install.bat')
 
@@ -223,6 +217,45 @@ class EasyBot(commands.Bot):
             raise error
 
    #-----------------------------------------
+    @commands.dm_only()
+    @commands.command(
+        aliases=['sitin'],
+        description="[Party] Sets the readiness of the client to unready.",
+        help="Sets the readiness of the client to unready.\n"
+             "Example: !unready"
+    )
+    async def unready(self, ctx: fortnitepy.ext.commands.Context) -> None:
+        await self.party.me.set_ready(fortnitepy.ReadyState.NOT_READY)
+        await ctx.send('Unready, finaly!')
+
+    @commands.dm_only()
+    @commands.command(
+        aliases=['unhide'],
+        description="[Party] Promotes the defined user to party leader. If friend is left blank, "
+                    "the message author will be used.",
+        help="Promotes the defined user to party leader. If friend is left blank, the message author will be used.\n"
+             "Example: !promote mxnty"
+    )
+    async def promote(self, ctx: fortnitepy.ext.commands.Context, *, epic_username: Optional[str] = None) -> None:
+        if epic_username is None:
+            user = await self.fetch_user(ctx.author.display_name)
+            member = self.party.members.get(user.id)
+        else:
+            user = await self.fetch_user(epic_username)
+            member = self.party.members.get(user.id)
+
+        if member is None:
+            await ctx.send("Failed to find that user, are you sure they're in the party?")
+        else:
+            try:
+                await member.promote()
+                await ctx.send(f"Promoted user: {member.display_name}.")
+                print(f"Promoted user: {member.display_name}")
+            except fortnitepy.errors.Forbidden:
+                await ctx.send(f"Failed topromote {member.display_name}, as I'm not party leader.")
+                print(crayons.red(f"[ERROR] "
+                                  "Failed to kick member as I don't have the required permissions."))
+
     @commands.dm_only()
     @commands.command(
         description="[Cosmetic] Clears the currently set backpack.",
