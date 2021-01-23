@@ -355,7 +355,7 @@ class EasyBot(commands.Bot):
         )
 
         await self.party.me.set_backpack(
-            asset='BID_105_GhostPortal',
+            asset='VTID_053_Ghost_Portal__RedFlames',
             variants=skin_variants
         )
 
@@ -406,7 +406,7 @@ class EasyBot(commands.Bot):
                 await ctx.send(f"Promoted user: {member.display_name}.")
                 print(f"Promoted user: {member.display_name}")
             except fortnitepy.errors.Forbidden:
-                await ctx.send(f"Failed topromote {member.display_name}, as I'm not party leader.")
+                await ctx.send(f"Failed to promote {member.display_name}, as I'm not party leader.")
                 print(crayons.red(f"[ERROR] "
                                   "Failed to kick member as I don't have the required permissions."))
 
@@ -718,34 +718,108 @@ class EasyBot(commands.Bot):
       await ctx.send(
         f"There was all exclusive!"
     ) 
+
     @commands.dm_only()
     @commands.command(
-        description="[Cosmetic] Equips all skins currently in the item shop.",
-        help="Equips all skins currently in the item shop.\n"
-             "Example: !shop"
+        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
+        help="Sets the outfit of the client to a random Henchman skin.\n"
+             "Example: exclusive"
     )
-    async def shop(self, ctx: fortnitepy.ext.commands.Context) -> None:
-        store = await self.fetch_item_shop()
+    async def s2(self, ctx: fortnitepy.ext.commands.Context) -> None:
+      await ctx.send(f"S2 pass..")
+      await self.party.me.set_outfit(asset="CID_032_Athena_Commando_M_Medieval")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Wave")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_033_Athena_Commando_F_Medieval")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_DanceMoves")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_039_Athena_Commando_F_Disco")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_RideThePonyTwo")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_035_Athena_Commando_M_Medieval")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Floss")
+      await asyncio.sleep(5)
+      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+      await self.party.me.set_emote(asset="EID_Dab")
+      await ctx.send(
+        f"S2 reel"
+      )
 
-        await ctx.send(f"Equipping all skins in today's item shop.")
-        print(f"Equipping all skins in today's item shop.")
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
+        help="Sets the outfit of the client to a random Henchman skin.\n"
+             "Example: exclusive"
+    )
+    async def s3(self, ctx: fortnitepy.ext.commands.Context) -> None:
+      await ctx.send(f"S3 pass..")
+      await self.party.me.set_outfit(asset="CID_080_Athena_Commando_M_Space")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_081_Athena_Commando_F_Space")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_BestMates")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_082_Athena_Commando_M_Scavenger")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_088_Athena_Commando_M_SpaceBlack")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_083_Athena_Commando_F_Tactical")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Robot")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_084_Athena_Commando_M_Assassin")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_TakeTheL")
+      await asyncio.sleep(5)
+      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+      await self.party.me.set_emote(asset="EID_Dab")
+      await ctx.send(
+        f"S3 reel"
+      )  
 
-        for item in store.special_featured_items + \
-                store.special_daily_items + \
-                store.special_featured_items + \
-                store.special_daily_items:
-            for grant in item.grants:
-                if grant['type'] == 'AthenaCharacter':
-                    await self.party.me.set_outfit(
-                        asset=grant['asset']
-                    )
-
-                    await ctx.send(f"Skin set to {item.display_names[0]}!")
-                    print(f"Skin set to: {item.display_names[0]}!")
-
-
-        await ctx.send(f'Finished equipping all skins in the item shop.')
-        print(f'Finished equipping all skins in the item shop.')
+    @commands.dm_only()
+    @commands.command(
+        description="[Cosmetic] Sets the outfit of the client to a random Henchman skin.",
+        help="Sets the outfit of the client to a random Henchman skin.\n"
+             "Example: exclusive"
+    )
+    async def s1(self, ctx: fortnitepy.ext.commands.Context) -> None:
+      await ctx.send(f"S1 pass..")
+      await self.party.me.set_outfit(asset="CID_017_Athena_Commando_M")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Dab")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_022_Athena_Commando_F")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_Fresh")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_029_Athena_Commando_F_Halloween")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_FingerGuns")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_030_Athena_Commando_M_Halloween")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="")
+      await asyncio.sleep(5)
+      await self.party.me.set_outfit(asset="CID_028_Athena_Commando_F")
+      await asyncio.sleep(2)
+      await self.party.me.set_emote(asset="EID_ElectroShuffle")
+      await asyncio.sleep(5)
+      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+      await self.party.me.set_emote(asset="EID_Dab")
+      await ctx.send(
+        f"S1 reel"
+      )  
 
     @commands.dm_only()
     @commands.command(
