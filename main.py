@@ -4,6 +4,9 @@ try:
     import os
     import time
     import datetime
+    import sanic
+    import keep_alive
+    
 
     import json
     from functools import partial
@@ -24,7 +27,7 @@ except ModuleNotFoundError as e:
     print(e)
     print(
         Fore.RED
-        + " • "
+        + " â€¢ "
         + Fore.RESET
         + 'Failed to import 1 or more modules. Run "INSTALL PACKAGES.bat'
     )
@@ -41,6 +44,22 @@ intro = (
 )
 
 print(intro)
+
+sanic_app = sanic.Sanic(__name__) 
+server = None
+
+name = ""
+
+filename = 'device.json'
+
+@sanic_app.route('/', methods=['GET'])
+async def accept_ping(request: sanic.request.Request):
+    return sanic.response.json({"status": "online"})
+
+
+@sanic_app.route('/name', methods=['GET'])
+async def accept_ping(request: sanic.request.Request):
+    return sanic.response.json({"display_name": name})
 
 
 def lenPartyMembers():
@@ -161,7 +180,8 @@ client = commands.Bot(
     ),
     platform=fortnitepy.Platform(data["platform"]),
 )
-
+client.sanic_app = sanic_app
+client.server = server
 
 
 
@@ -178,7 +198,7 @@ async def event_ready():
     print(intro)
     print(
         Fore.LIGHTCYAN_EX
-        + " • "
+        + " â€¢ "
         + Fore.RESET
         + "Client ready as "
         + Fore.LIGHTCYAN_EX
@@ -220,7 +240,7 @@ async def event_party_invite(invite):
             await invite.accept()
             print(
                 Fore.LIGHTCYAN_EX
-                + " • "
+                + " â€¢ "
                 + Fore.RESET
                 + "Accepted party invite from"
                 + Fore.LIGHTCYAN_EX
@@ -233,7 +253,7 @@ async def event_party_invite(invite):
             await invite.accept()
             print(
                 Fore.LIGHTCYAN_EX
-                + " • "
+                + " â€¢ "
                 + Fore.RESET
                 + "Accepted party invite from "
                 + Fore.LIGHTCYAN_EX
@@ -242,7 +262,7 @@ async def event_party_invite(invite):
         else:
             print(
                 Fore.LIGHTCYAN_EX
-                + " • "
+                + " â€¢ "
                 + Fore.RESET
                 + "Never accepted party invite from "
                 + Fore.LIGHTCYAN_EX
@@ -256,7 +276,7 @@ async def event_friend_request(request):
         try:
             await request.accept()
             print(
-                f" • Accepted friend request from {request.display_name}"
+                f" â€¢ Accepted friend request from {request.display_name}"
                 + Fore.LIGHTBLACK_EX
                 + f" ({lenFriends()})"
             )
@@ -268,7 +288,7 @@ async def event_friend_request(request):
                 await request.accept()
                 print(
                     Fore.LIGHTCYAN_EX
-                    + " • "
+                    + " â€¢ "
                     + Fore.RESET
                     + "Accepted friend request from "
                     + Fore.LIGHTCYAN_EX
@@ -279,7 +299,7 @@ async def event_friend_request(request):
             except Exception:
                 pass
         else:
-            print(f" • Never accepted friend request from {request.display_name}")
+            print(f" â€¢ Never accepted friend request from {request.display_name}")
 
 banned = []
 
@@ -337,7 +357,7 @@ async def event_party_member_leave(member):
         try:
             print(
                 Fore.LIGHTYELLOW_EX
-                + f" • {member.display_name}"
+                + f" â€¢ {member.display_name}"
                 + Fore.RESET
                 + " has left the lobby."
                 + Fore.LIGHTBLACK_EX
@@ -353,7 +373,7 @@ async def event_party_message(message):
         name = Fore.LIGHTCYAN_EX + f"{message.author.display_name}"
     else:
         name = Fore.RESET + f"{message.author.display_name}"
-    print(Fore.GREEN + " • [Party] " + f"{name}" + Fore.RESET + f": {message.content}")
+    print(Fore.GREEN + " â€¢ [Party] " + f"{name}" + Fore.RESET + f": {message.content}")
 
 
 @client.event
@@ -364,7 +384,7 @@ async def event_friend_message(message):
         name = Fore.RESET + f"{message.author.display_name}"
     print(
         Fore.LIGHTMAGENTA_EX
-        + " • [Whisper] "
+        + " â€¢ [Whisper] "
         + f"{name}"
         + Fore.RESET
         + f": {message.content}"
@@ -1531,7 +1551,7 @@ async def level(ctx, level = None):
         await client.party.me.set_banner(season_level=level)
         await ctx.send(f'Level set to: {level}')
 
-client.status = '🔥 Made with GhostFN 🔥'
+client.status = 'ðŸ”¥ Made with GhostFN ðŸ”¥'
 
 @client.command()
 async def og(ctx):
@@ -1910,7 +1930,8 @@ async def admin(ctx, setting = None, *, user = None):
         else:
             await ctx.send(f"Not a valid setting. Try: {prefix}admin (add, remove) (user)")
 
-  
+keep_alive.keep_alive()#start the server
+
 if (data['email'] and data['password']) and (data['email'] != "" and data['password'] != ""):
     try:
         client.run()
