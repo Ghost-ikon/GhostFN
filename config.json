@@ -12,7 +12,7 @@
     "prefix": "!",
     "platform": "XBL",
     "playlist": "Playlist_Lite_Solo",
-    "friendaccept": "false",
+    "friendaccept": "true",
     "joinoninvite": "false",
     "AdminPassword": "002"
 }
