@@ -226,7 +226,7 @@ async def event_ready():
 
     client.set_avatar(
         fortnitepy.Avatar(
-            asset=data["avatar"], background_colors=["#ff3535", "#dc1919", "#fa7676"]
+            asset=data["avatar"], background_colors=["#ffffff", "#ffffff", "#ffffff"]
         )
     )
     client.message='test'
