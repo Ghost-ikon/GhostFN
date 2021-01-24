@@ -1368,7 +1368,96 @@ async def privacy(ctx, setting = None):
             await ctx.send("I can not set the party privacy because I am not party leader.")
     else:
         await ctx.send(f"No privacy setting was given. Try: {prefix}privacy (Public, Friends, Private)")
+
+@client.command()
+async def invite(ctx, *, member = None):
+    if member == 'all':
+        friends = client.friends
+        invited = []
+
+        try:
+            for f in friends:
+                friend = client.get_friend(f)
+
+                if friend.is_online():
+                    invited.append(friend.display_name)
+                    await friend.invite()
+            
+            await ctx.send(f"Invited {len(invited)} friends to the party.")
+
+        except Exception:
+            pass
+
+    else:
+        try:
+            if member is None:
+                user = await client.fetch_profile(ctx.message.author.id)
+                friend = client.get_friend(user.id)
+            if member is not None:
+                user = await client.fetch_profile(member)
+                friend = client.get_friend(user.id)
+
+            await friend.invite()
+            await ctx.send(f"Invited {friend.display_name} to the party.")
+        except fortnitepy.PartyError:
+            await ctx.send("That user is already in the party.")
+        except fortnitepy.HTTPException:
+            await ctx.send("Something went wrong inviting that user.")
+        except AttributeError:
+            await ctx.send("I can not invite that user. Are you sure I have them friended?")
+        except Exception:
+            pass     
+
+@client.command()
+@is_admin()
+async def friends(ctx):
+    cfriends = client.friends
+    onlineFriends = []
+    offlineFriends = []
+
+    try:
+        for f in cfriends:
+            friend = client.get_friend(f)
+            if friend.is_online():
+                onlineFriends.append(friend.display_name)
+            else:
+                offlineFriends.append(friend.display_name)
         
+        await ctx.send(f"Client has: {len(onlineFriends)} friends online and {len(offlineFriends)} friends offline")
+        await ctx.send("(Check cmd for full list of friends)")
+
+        print(" [+] Friends List: " + Fore.GREEN + f'{len(onlineFriends)} Online ' + Fore.RESET + "/" + Fore.LIGHTBLACK_EX + f' {len(offlineFriends)} Offline ' + Fore.RESET + "/" + Fore.LIGHTWHITE_EX + f' {len(onlineFriends) + len(offlineFriends)} Total')
+        
+        for x in onlineFriends:
+            if x is not None:
+                print(Fore.GREEN + " " + x)
+        for x in offlineFriends:
+            if x is not None:
+                print(Fore.LIGHTBLACK_EX + " " + x)
+    except Exception:
+        pass
+
+@client.command()
+async def block(ctx, *, user = None):
+    if user is not None:
+        try:
+            user = await client.fetch_profile(user)
+            friends = client.friends
+
+            if user.id in friends:
+                try:
+                    await user.block()
+                    await ctx.send(f"Blocked {user.display_name}")
+                except fortnitepy.HTTPException:
+                    await ctx.send("Something went wrong trying to block that user.")
+
+            elif user.id in client.blocked_users:
+                await ctx.send(f"I already have {user.display_name} blocked.")
+        except AttributeError:
+            await ctx.send("Can't find a player with that name.")
+    else:
+        await ctx.send(f"No user was given. Try: {prefix}block (friend)")
+
 @client.command()
 async def kick(ctx, *, member = None):
     if member is not None:
