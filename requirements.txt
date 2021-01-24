@@ -3,4 +3,3 @@ aiohttp
 colorama
 BenBotAsync
 requests
-test
