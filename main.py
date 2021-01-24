@@ -1349,14 +1349,86 @@ async def hide(ctx, *, user=None):
     else:
         await ctx.send("I need party leader to do this!")
 
+@client.command()
+async def privacy(ctx, setting = None):
+    if setting is not None:
+        try:
+            if setting.lower() == 'public':
+                await client.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
+                await ctx.send(f"Party Privacy set to: Public")
+            elif setting.lower() == 'friends':
+                await client.party.set_privacy(fortnitepy.PartyPrivacy.FRIENDS)
+                await ctx.send(f"Party Privacy set to: Friends Only")
+            elif setting.lower() == 'private':
+                await client.party.set_privacy(fortnitepy.PartyPrivacy.PRIVATE)
+                await ctx.send(f"Party Privacy set to: Private")
+            else:
+                await ctx.send("That is not a valid privacy setting. Try: Public, Friends, or Private")
+        except fortnitepy.Forbidden:
+            await ctx.send("I can not set the party privacy because I am not party leader.")
+    else:
+        await ctx.send(f"No privacy setting was given. Try: {prefix}privacy (Public, Friends, Private)")
+        
+@client.command()
+async def kick(ctx, *, member = None):
+    if member is not None:
+        if member.lower() == 'all':
+            members = client.party.members
+
+            for m in members:
+                try:
+                    member = await client.get_user(m)
+                    await member.kick()
+                except fortnitepy.Forbidden:
+                    await ctx.send("I am not party leader.")
+
+            await ctx.send("Kicked everyone in the party")
+
+        else:
+            try:
+                user = await client.fetch_profile(member)
+                member = client.party.members.get(user.id)
+                if member is None:
+                    await ctx.send("Couldn't find that user. Are you sure they're in the party?")
+
+                await member.kick()
+                await ctx.send(f'Kicked: {member.display_name}')
+            except fortnitepy.Forbidden:
+                await ctx.send("I can't kick that user because I am not party leader")
+            except AttributeError:
+                await ctx.send("Couldn't find that user.")
+    else:
+        await ctx.send(f'No member was given. Try: {prefix}kick (user)')
 
 @client.command()
+@is_admin()
+async def promote(ctx, *, member = None, display_name, str):
+    if member is None:
+        user = await client.fetch_profile(ctx.message.author.id)
+        member = client.party.members.get(user.id)
+    if member is not None:
+        user = await client.fetch_profile(member.display_name)
+        member = client.party.members.get(user.id)
+    try:
+        await member.promote()
+        await ctx.send(f"Promoted: {member.display_name}")
+    except fortnitepy.Forbidden:
+        await ctx.send("Client is not party leader")
+    except fortnitepy.PartyError:
+        await ctx.send("That person is already party leader")
+    except fortnitepy.HTTPException:
+        await ctx.send("Something went wrong trying to promote that member")
+    except AttributeError:
+        await ctx.send("I could not find that user")
+
+@client.command()
+@is_admin()
 async def unhide(ctx):
     if client.party.me.leader:
         user = await client.fetch_profile(ctx.message.author.id)
         member = client.party.members.get(user.id)
 
-        await promote()
+        await member.promote()
 
         await ctx.send("Unhid all players.")
 
