@@ -1,6 +1,6 @@
 # GhostFN
 GhostFN for a easy lobby bot
-### Some credits to: PartyBot
+### Some credits to: mxnty
 # How to Install?
 1. Create a https://repl.it Account.
 2. Go to this Link https://repl.it/github/Ghost-ikon/GhostFN
