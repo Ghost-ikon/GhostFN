@@ -343,15 +343,13 @@ async def event_party_member_join(member: fortnitepy.PartyMember) -> None:
     await client.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
 
 @client.command()
+@is_admin()
 async def leave(member: fortnitepy.PartyMember) -> None:
     
     
     await client.party.me.set_emote(asset="EID_Snap")
     await asyncio.sleep(1.50)
     await client.party.me.leave()
-    await client.party.send(
-        f" Bye! \n Made with GhostFN \n Join https://discord.gg/8AHPRyEzmF to get your own bot!"
-    )
     await client.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
     
        
