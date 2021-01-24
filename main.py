@@ -1551,7 +1551,7 @@ async def level(ctx, level = None):
         await client.party.me.set_banner(season_level=level)
         await ctx.send(f'Level set to: {level}')
 
-client.status = 'ðŸ”¥ Made with GhostFN ðŸ”¥'
+client.status = '🔥 Made with GhostFN 🔥'
 
 @client.command()
 async def og(ctx):
