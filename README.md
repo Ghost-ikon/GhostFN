@@ -1,4 +1,4 @@
-# GhostFN
+# GhostFNBot
 GhostFN for a easy lobby bot, Made by GHΩSTLEAK$#4768
 ### Some credits to: mxnty
 # How to Install?
