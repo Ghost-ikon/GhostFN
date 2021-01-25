@@ -446,7 +446,10 @@ async def event_command_error(ctx, error):
 async def ghostleaks(ctx):
     await ctx.send('With GhostFN you can easly create your own lobby bot in less than 5 minutes!')
     
-    
+@client.command()
+async def ?help(ctx):
+    await ctx.send('Hey, join my Discord: https://discord.gg/8AHPRyEzmF or follow me on Instagram: @ghost__leaks if you want your own bot or need any help')
+     
     
     
     
