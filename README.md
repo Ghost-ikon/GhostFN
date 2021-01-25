@@ -1,5 +1,5 @@
 # GhostFN
-GhostFN for a easy lobby bot
+GhostFN for a easy lobby bot, Made by GHΩSTLEAK$#4768
 ### Some credits to: mxnty
 # How to Install?
 1. Create a https://repl.it Account.
