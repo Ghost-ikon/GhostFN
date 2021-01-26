@@ -1106,6 +1106,13 @@ async def gift(ctx):
     await asyncio.sleep(10)
     await client.party.me.clear_emote()
 
+
+@client.command()
+async def recruit(ctx):
+    await client.party.me.set_outfit(
+        asset='CID_001_Athena_Commando_F_Default'
+    )
+
 @client.command()
 async def marvel(ctx):
     await ctx.send(f"All marvel skins with emotes !")
