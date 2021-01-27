@@ -1149,8 +1149,16 @@ async def ecu(ctx):
     await client.party.me.set_emote(asset="eid_bollywood")
 
 @client.command()
+async def zerotwo(ctx):
+    await client.party.me.set_outfit(asset="CID_753_Athena_Commando_F_Hostile")
+    await client.party.me.set_backpack(asset="bid_600_CID")
+    await client.party.me.set_emote(asset="EID_KpopDance04")
+    await ctx.send('ZeroTwo is really an important memory for GhostLeaks and I think his story is an example for everyone...')    
+
+@client.command()
 async def fruit(ctx):
     await client.party.me.set_outfit(asset="CID_764_Athena_Commando_F_Loofah")
+    await client.party.me.set_backpack(asset="BID_000_CID")
     await client.party.me.set_emote(asset="EID_Loofah")
     
 
