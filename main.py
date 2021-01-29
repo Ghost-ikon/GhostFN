@@ -337,8 +337,8 @@ async def event_party_member_join(member: fortnitepy.PartyMember) -> None:
     await client.party.send(
         f" Welcome {member.display_name}, \n Made with GhostFN \n Youtube: GhostLeaks to get your bot \n Join https://discord.gg/8AHPRyEzmF for help!"
     )
-    await client.party.me.set_emote(asset="eid_wave")
-    await asyncio.sleep(1.25)
+    await client.party.me.set_emote(asset="EID_Psychic_7SO2Z")
+    await asyncio.sleep(37.02)
     await client.party.me.clear_emote()
     await client.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
 
@@ -352,7 +352,63 @@ async def leave(member: fortnitepy.PartyMember) -> None:
     await client.party.me.leave()
     await client.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
     
-       
+
+@client.command()
+@is_admin()
+async def block(ctx, *, user = None):
+    if user is not None:
+        try:
+            user = await client.fetch_profile(user)
+            friends = client.friends
+
+            if user.id in friends:
+                try:
+                    await user.block()
+                    await ctx.send(f"Added to blacklist {user.display_name}")
+                except fortnitepy.HTTPException:
+                    await ctx.send("Something went wrong trying to block that user.")
+
+            elif user.id in client.blocked_users:
+                await ctx.send(f"I already have {user.display_name} blocked.")
+        except AttributeError:
+            await ctx.send("Can't find this user")
+    else:
+        await ctx.send(f"No user was given. Try: {prefix}block (friend)")      
+
+@client.command()
+@is_admin()
+async def unblock(ctx, *, user = None):
+    if user is not None:
+        try:
+            member = await client.fetch_profile(user)
+            blocked = client.blocked_users
+            if member.id in blocked:
+                try:
+                    await client.unblock_user(user.id)
+                    await ctx.send(f'Unblocked {user.display_name}')
+                except fortnitepy.HTTPException:
+                    await ctx.send('Something went wrong trying to unblock that user.')
+            else:
+                await ctx.send('That user is not blocked')
+        except AttributeError:
+            await ctx.send("Can’t find this user")
+    else:
+        await ctx.send(f'No user was given. Try: {prefix}unblock (blocked user)') 
+
+@client.command()
+@is_admin()
+async def blocked(ctx):
+
+    blockedusers = []
+
+    for b in client.blocked_users:
+        user = client.get_blocked_user(b)
+        blockedusers.append(user.display_name)
+
+    await ctx.send(f'Client has {len(blockedusers)} users blocked!')
+    for x in blockedusers:
+        if x is not None:
+            await ctx.send(x)                
 
 @client.event
 async def event_party_member_confirm(confirmation):
@@ -1721,26 +1777,7 @@ async def friends(ctx):
     except Exception:
         pass
 
-@client.command()
-async def block(ctx, *, user = None):
-    if user is not None:
-        try:
-            user = await client.fetch_profile(user)
-            friends = client.friends
 
-            if user.id in friends:
-                try:
-                    await user.block()
-                    await ctx.send(f"Blocked {user.display_name}")
-                except fortnitepy.HTTPException:
-                    await ctx.send("Something went wrong trying to block that user.")
-
-            elif user.id in client.blocked_users:
-                await ctx.send(f"I already have {user.display_name} blocked.")
-        except AttributeError:
-            await ctx.send("Can't find a player with that name.")
-    else:
-        await ctx.send(f"No user was given. Try: {prefix}block (friend)")
 
 @client.command()
 async def kick(ctx, *, member = None):
@@ -1775,25 +1812,24 @@ async def kick(ctx, *, member = None):
 
 @client.command()
 @is_admin()
-async def promote(self, ctx: fortnitepy.ext.commands.Context, *, epic_username, crayons):
-        if epic_username is None:
-            user = await self.fetch_user(ctx.author.display_name)
-            member = self.party.members.get(user.id)
-        else:
-            user = await self.fetch_user(epic_username)
-            member = self.party.members.get(user.id)
-
-        if member is None:
-            await ctx.send("Failed to find that user, are you sure they're in the party?")
-        else:
-            try:
-                await member.promote()
-                await ctx.send(f"Promoted user: {member.display_name}.")
-                print(f"Promoted user: {member.display_name}")
-            except fortnitepy.errors.Forbidden:
-                await ctx.send(f"Failed topromote {member.display_name}, as I'm not party leader.")
-                print(crayons.red(f"[ERROR] "
-                                  "Failed to kick member as I don't have the required permissions."))
+async def promote(ctx, *, username = None):
+    if username is None:
+        user = await client.fetch_user(ctx.author.display_name)
+        member = client.party.get_member(user.id)
+    else:
+        user = await client.fetch_user(username)
+        member = client.party.get_member(user.id)
+    try:
+        await member.promote()
+        await ctx.send(f"Promoted: {member.display_name}")
+    except fortnitepy.Forbidden:
+        await ctx.send("Client is not party leader")
+    except fortnitepy.PartyError:
+        await ctx.send("That person is already party leader")
+    except fortnitepy.HTTPException:
+        await ctx.send("Something went wrong trying to promote that member")
+    except AttributeError:
+        await ctx.send("Can’t find this user")
 
 
 @client.command()
