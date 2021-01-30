@@ -1,9 +1,9 @@
 try:
     import asyncio
-    import sys
+    
     import os
-    import time
-    import datetime
+    
+    
     import sanic
     import keep_alive
     
@@ -38,7 +38,7 @@ os.system("cls||clear")
 intro = (
     Fore.LIGHTCYAN_EX
     + """ 
-    GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF
+    GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF, LOGIN WITH YOUR BOT ACCOUNT HERE COPY AND PASTE THE CODE! http://bit.ly/38URYTD
                                                                     
  """
 )
@@ -178,7 +178,7 @@ client = commands.Bot(
         delete_existing_device_auths=True,
         **device_auth_details,
     ),
-    platform=fortnitepy.Platform(data["platform"]),
+    platform=fortnitepy.Platform.XBOX_X,
 )
 client.sanic_app = sanic_app
 client.server = server
@@ -213,20 +213,20 @@ async def event_ready():
         partial(fortnitepy.ClientPartyMember.set_pickaxe, asset=data["pid"]),
         partial(
             fortnitepy.ClientPartyMember.set_banner,
-            icon=data["banner"],
-            color=data["banner_color"],
-            season_level=data["level"],
+            icon='InfluencerBanner17',
+            color='defaultcolor22',
+            season_level='4768',
         ),
         partial(
             fortnitepy.ClientPartyMember.set_battlepass_info,
             has_purchased=True,
-            level=data["bp_tier"],
+            level='4768',
         ),
     )
 
     client.set_avatar(
         fortnitepy.Avatar(
-            asset=data["avatar"], background_colors=["#ffffff", "#ffffff", "#ffffff"]
+            asset='CID_017_Athena_Commando_M', background_colors=["#ffffff", "#ffffff", "#ffffff"]
         )
     )
     client.message='test'
@@ -305,13 +305,13 @@ banned = []
 
 @client.event
 async def event_party_message(message: fortnitepy.PartyMessage):
-    if message.content == "" and client.party.me.leader:
+    if message.content == "LupusLeaks" and client.party.me.leader:
         await message.author.kick()
         banned.append(message.author.id)
 @client.event
-async def event_party_message(message: fortnitepy.PartyMessage):
-    if message.content == "Hi" and client.party.me.leader:
-        await ctx.send('Hello friend how are you!')
+async def event_party_message( message: fortnitepy.PartyMessage):
+    if message.content == "LupusLeaks" and client.party.me.leader:
+        await ctx.send("Lupus is really bad at making bots -_-")
 @client.event
 async def event_party_member_confirm(confirmation: fortnitepy.PartyJoinConfirmation):
     if confirmation.user.id not in banned:
@@ -1363,6 +1363,20 @@ async def pet(ctx, *, content = None):
         except BenBotAsync.exceptions.NotFound:
             await ctx.send(f'Could not find a pet named: {content}')
 
+@client.command()
+@is_admin()
+async def members(ctx: fortnitepy.ext.commands.Context):
+    pmembers = client.party.members
+    partyMembers = []
+    
+    for m in pmembers:
+        member = client.get_user(m)
+        partyMembers.append(member.display_name)
+    
+    await ctx.send(f"There are {len(partyMembers)} members in {client.user.display_name}'s party:")
+    for x in partyMembers:
+        if x is not None:
+            await ctx.send(x)
 
 
 @client.command()
