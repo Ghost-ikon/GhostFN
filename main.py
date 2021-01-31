@@ -647,14 +647,29 @@ async def purpleskull(ctx):
     await ctx.send('Skin set to: purple skull')
     await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
     
+@client.command()
+async def renegade2(ctx):
+    variants = client.party.me.create_variants(material=2)
+
+    await client.party.me.set_outfit(
+        asset='CID_028_Athena_Commando_F',
+        variants=variants
+    )
+
+    await ctx.send('Skin set to: Checkered Renegade')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')    
     
     
     
     
     
     
-    
-    
+@client.command()
+async def magic(ctx: fortnitepy.ext.commands.Context):
+    await client.party.me.set_emote(asset="EID_Wizard")
+    await asyncio.sleep(2.00)
+    await client.party.me.set_outfit("CID_Invisible") 
+    await ctx.send('Poof, magic treack!')   
     
     
     
@@ -1948,7 +1963,7 @@ async def itemshop(ctx):
 
     await client.party.me.clear_emote()
     
-    await ctx.send("Done!")
+    await ctx.send("To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
 
     await asyncio.sleep(1.5)
 
@@ -2159,56 +2174,47 @@ async def copy(ctx, *, username = None):
     global copied_player
 
     if username is None:
-        user = await client.fetch_profile(ctx.message.author.id)
-        member = client.party.members.get(user.id)
+        member = [m for m in client.party.members if m.id == ctx.author.id][0]
 
-    elif 'stop' in username:
-        copied_player = ""
-        await ctx.send(f'Stopped copying all users.')
-        return
+    else:
+        user = await client.fetch_user(username)
+        member = [m for m in client.party.members if m.id == user.id][0]
 
-    elif username is not None:
-        try:
-            user = await client.fetch_profile(username)
-            member = client.party.members.get(user.id)
-        except AttributeError:
-            await ctx.send("Could not get that user.")
-            return
-    try:
-        copied_player = member
-
-        await client.party.me.edit_and_keep(
-                partial(
-                    fortnitepy.ClientPartyMember.set_outfit,
-                    asset=member.outfit,
-                    variants=member.outfit_variants
-                ),
-                partial(
-                    fortnitepy.ClientPartyMember.set_backpack,
-                    asset=member.backpack,
-                    variants=member.backpack_variants
-                ),
-                partial(
-                    fortnitepy.ClientPartyMember.set_pickaxe,
-                    asset=member.pickaxe,
-                    variants=member.pickaxe_variants
-                ),
-                partial(
-                    fortnitepy.ClientPartyMember.set_banner,
-                    icon=member.banner[0],
-                    color=member.banner[1],
-                    season_level=member.banner[2]
-                ),
-                partial(
-                    fortnitepy.ClientPartyMember.set_battlepass_info,
-                    has_purchased=member.battlepass_info[0],
-                    level=member.battlepass_info[1]
-                )
+    await client.party.me.edit_and_keep(
+            partial(
+                fortnitepy.ClientPartyMember.set_outfit,
+                asset=member.outfit,
+                variants=member.outfit_variants
+            ),
+            partial(
+                fortnitepy.ClientPartyMember.set_backpack,
+                asset=member.backpack,
+                variants=member.backpack_variants
+            ),
+            partial(
+                fortnitepy.ClientPartyMember.set_pickaxe,
+                asset=member.pickaxe,
+                variants=member.pickaxe_variants
+            ),
+            partial(
+                fortnitepy.ClientPartyMember.set_banner,
+                icon=member.banner[0],
+                color=member.banner[1],
+                season_level=member.banner[2]
+            ),
+            partial(
+                fortnitepy.ClientPartyMember.set_battlepass_info,
+                has_purchased=member.battlepass_info[0],
+                level=member.battlepass_info[1]
+            ),
+            partial(
+                fortnitepy.ClientPartyMember.set_emote,
+                asset=member.emote
             )
+        )
 
-        await ctx.send(f"Now copying: {member.display_name}")
-    except AttributeError:
-        await ctx.send("Could not get that user.")
+    await ctx.send(f"Now copying: {member.display_name}")
+    
 
 @client.event()
 async def event_party_member_outfit_change(member, before, after):
