@@ -1,5 +1,6 @@
-fortnitepy
+#fortnitepy
 aiohttp
 colorama
 BenBotAsync
 requests
+git+https://github.com/gomashio1596/fortnitepy
