@@ -1,6 +1,6 @@
 # GhostFNBot
 GhostFNBot for a easy lobby bot, Made by GHΩSTLEAK$#4768
-### Some credits to: mxnty
+### Some credits to: mxnty and pirxcy
 # How to Install?
 1. Create a https://repl.it Account.
 2. Go to this Link https://repl.it/github/Ghost-ikon/GhostFN
