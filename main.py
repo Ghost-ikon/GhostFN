@@ -38,7 +38,7 @@ os.system("cls||clear")
 intro = (
     Fore.LIGHTCYAN_EX
     + """ 
-    GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF, LOGIN WITH YOUR BOT ACCOUNT HERE COPY AND PASTE THE CODE! http://bit.ly/38URYTD
+    GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/rAd9YnHjV3, LOGIN WITH YOUR BOT ACCOUNT HERE COPY AND PASTE THE CODE! http://bit.ly/38URYTD
                                                                     
  """
 )
@@ -137,7 +137,7 @@ with open("config.json") as f:
             Fore.RED
             + " [ERROR] "
             + Fore.RESET
-            + "There was an error in one of the bot's files! (config.json). GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF"
+            + "There was an error in one of the bot's files! (config.json). GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/rAd9YnHjV3"
         )
         print(Fore.LIGHTRED_EX + f"\n {e}")
         exit(1)
@@ -151,7 +151,7 @@ with open("info.json") as f:
             Fore.RED
             + " [ERROR] "
             + Fore.RESET
-            + "There was an error in one of the bot's files! (info.json) GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/8AHPRyEzmF"
+            + "There was an error in one of the bot's files! (info.json) GhostFN for an easy lobby bot! Join here if you need help or found any bugs\n https://discord.gg/rAd9YnHjV3"
         )
         print(Fore.LIGHTRED_EX + f"\n {e}")
         exit(1)
@@ -335,7 +335,7 @@ async def event_party_member_confirm(confirmation: fortnitepy.PartyJoinConfirmat
 async def event_party_member_join(member: fortnitepy.PartyMember) -> None:
     
     await client.party.send(
-        f" Welcome {member.display_name}, \n Made with GhostFN \n Youtube: GhostLeaks to get your bot \n Join https://discord.gg/8AHPRyEzmF for help!"
+        f" Welcome {member.display_name}, \n Made with GhostFN \n Youtube: GhostLeaks to get your bot \n Join https://discord.gg/rAd9YnHjV3 for help!"
     )
     await client.party.me.set_emote(asset="EID_Psychic_7SO2Z")
     await asyncio.sleep(37.02)
@@ -634,7 +634,7 @@ async def pinkghoul(ctx):
     )
 
     await ctx.send('Skin set to: Pink ghoul')
-    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
 @client.command()
 async def purpleskull(ctx):
     variants = client.party.me.create_variants(clothing_color=1)
@@ -645,7 +645,7 @@ async def purpleskull(ctx):
     )
 
     await ctx.send('Skin set to: purple skull')
-    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
     
 @client.command()
 async def renegade2(ctx):
@@ -657,7 +657,7 @@ async def renegade2(ctx):
     )
 
     await ctx.send('Skin set to: Checkered Renegade')
-    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')    
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')    
     
     
     
@@ -723,7 +723,7 @@ async def defaults(ctx):
     await ctx.send(
         f"There was all defaults! "
     )
-    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
 @client.command()
 async def exclusive(ctx):
       await ctx.send(f"Exclusive skins..")
@@ -759,7 +759,7 @@ async def exclusive(ctx):
       await asyncio.sleep(2)
       await client.party.me.set_emote(asset="EID_MathDance")
       await asyncio.sleep(7)
-      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
       await client.party.me.set_outfit(asset="CID_371_Athena_Commando_M_SpeedyMidnight")
       await asyncio.sleep(2)
       await client.party.me.set_emote(asset="EID_LasagnaDance")
@@ -796,7 +796,7 @@ async def exclusive(ctx):
       await ctx.send(
         f"There was all exclusive!"
     ) 
-      await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+      await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
 
 @client.command()
 async def s2(ctx):
@@ -817,7 +817,7 @@ async def s2(ctx):
       await asyncio.sleep(2)
       await client.party.me.set_emote(asset="EID_Floss")
       await asyncio.sleep(5)
-      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
       await client.party.me.set_emote(asset="EID_Dab")
       await ctx.send(
         f"S2 reel"
@@ -846,7 +846,7 @@ async def s1(ctx):
       await asyncio.sleep(2)
       await client.party.me.set_emote(asset="EID_ElectroShuffle")
       await asyncio.sleep(5)
-      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
       await client.party.me.set_emote(asset="EID_Dab")
       await ctx.send(
         f"S1 reel"
@@ -879,7 +879,7 @@ async def s3(ctx):
       await asyncio.sleep(2)
       await client.party.me.set_emote(asset="EID_TakeTheL")
       await asyncio.sleep(5)
-      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+      await ctx.send(f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
       await client.party.me.set_emote(asset="EID_Dab")
       await ctx.send(
         f"S3 reel"
@@ -921,7 +921,7 @@ async def zombie(ctx):
     await ctx.send(
         f"Zombie skins! "
     )
-    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
 @client.command()
 async def soccer(ctx):
     await client.party.me.set_outfit(asset="cid_144_athena_commando_m_soccerdudea")
@@ -956,7 +956,7 @@ async def soccer(ctx):
     await client.party.me.set_emote(asset="eid_soccerjuggling")
     await asyncio.sleep(2.25)
     await client.party.me.clear_emote()
-    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
  
 @client.command()
 async def randomize(ctx):
@@ -1212,7 +1212,7 @@ async def randomize(ctx):
       await ctx.send(
         f"Stopped!"
     ) 
-      await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+      await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
 
 @client.command()
 async def ecu(ctx):
@@ -1514,7 +1514,7 @@ async def marvel(ctx):
     await ctx.send(
         f"All the marvel skins! "
     )
-    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
+    await ctx.send('To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!')
 @client.command()
 async def name(ctx, *, content=None):
     if content is None:
@@ -1963,7 +1963,7 @@ async def itemshop(ctx):
 
     await client.party.me.clear_emote()
     
-    await ctx.send("To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
+    await ctx.send("To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!")
 
     await asyncio.sleep(1.5)
 
@@ -2103,7 +2103,7 @@ async def og(ctx):
         f"Season one og skins "
      )
     await ctx.send(
-      f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/8AHPRyEzmF \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!"
+      f"To get your OWN Lobby Bot: \n1) Join our Discord at: https://discord.gg/rAd9YnHjV3 \n2)YouTube: Ghost Leaks\n3) TikTok: Ghost_Leaks\n4) Instagram: ghost__leaks\nMade with GhostFN!"
      )
 
 @client.command()
