@@ -221,7 +221,7 @@ async def event_ready():
         partial(
             fortnitepy.ClientPartyMember.set_battlepass_info,
             has_purchased=True,
-            level='4768',
+            level='999',
         ),
     )
 
