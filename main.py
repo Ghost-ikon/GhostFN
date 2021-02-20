@@ -200,6 +200,7 @@ async def event_ready():
         Fore.LIGHTCYAN_EX
         + " â€¢ "
         + Fore.RESET
+        
         + "Client ready as "
         + Fore.LIGHTCYAN_EX
         + f"{client.user.display_name}"
@@ -215,7 +216,7 @@ async def event_ready():
             fortnitepy.ClientPartyMember.set_banner,
             icon='InfluencerBanner17',
             color='defaultcolor22',
-            season_level='4768',
+            season_level='999',
         ),
         partial(
             fortnitepy.ClientPartyMember.set_battlepass_info,
@@ -337,8 +338,8 @@ async def event_party_member_join(member: fortnitepy.PartyMember) -> None:
     await client.party.send(
         f" Welcome {member.display_name}, \n Made with GhostFN \n Youtube: GhostLeaks to get your bot \n Join https://discord.gg/rAd9YnHjV3 for help!"
     )
-    await client.party.me.set_emote(asset="EID_IndigoApple")
-    await asyncio.sleep(37.02)
+    await client.party.me.set_emote(asset="EID_ElectroShuffle_V2")
+    await asyncio.sleep(30.02)
     await client.party.me.clear_emote()
     await client.party.set_privacy(fortnitepy.PartyPrivacy.PUBLIC)
 
